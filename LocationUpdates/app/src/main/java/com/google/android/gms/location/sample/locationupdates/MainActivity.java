@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            text1.setText(downloadedBytes + "\n" + totalBytes + "\n" + downloadProgress + "%");
+                            text1.setText(downloadedBytes + " bytes\n" + totalBytes + " bytes\n" + downloadProgress + "%");
                             progressBar.setProgress((int) downloadProgress);
                         }
                     });

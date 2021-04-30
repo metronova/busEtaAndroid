@@ -140,6 +140,30 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/progressBar"
             android:text="Hello World!" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
 
+            <Button
+                android:id="@+id/read_json_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:onClick="startReadJSONButtonHandler"
+                android:text="@string/read_json" />
+
+        </LinearLayout>
+        <TextView
+            android:id="@+id/bus_stop_json"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/small_margin"
+            android:layout_marginStart="@dimen/small_margin"
+            android:textSize="@dimen/default_text_size" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

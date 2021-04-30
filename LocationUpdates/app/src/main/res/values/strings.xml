@@ -24,6 +24,7 @@
     <string name="start_updates">Start updates</string>
     <string name="stop_updates">Stop updates</string>
     <string name="download_json">Download JSON</string>
+    <string name="read_json">Read JSON</string>
 
     <string name="location_settings_inadequate_warning">The location settings on the device are not
         adequate to run this sample. Fix in Settings.</string>

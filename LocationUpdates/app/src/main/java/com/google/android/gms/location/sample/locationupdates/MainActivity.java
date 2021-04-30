@@ -27,13 +27,18 @@ import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Looper;
 import android.provider.Settings;
+
 import androidx.annotation.NonNull;
+
 import com.google.android.material.snackbar.Snackbar;
+
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -57,12 +62,25 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 
 
 /**
@@ -167,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
     DownloadManager downloadManager;
     long downloadReference;
     TextView text1;
+    TextView busStopJSONTextView;
     ProgressBar progressBar;
     Timer progressTimer;
 
@@ -183,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
         mStopUpdatesButton = (Button) findViewById(R.id.stop_updates_button);
         mLatitudeTextView = (TextView) findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
+        busStopJSONTextView = (TextView) findViewById(R.id.bus_stop_json);
         mLastUpdateTimeTextView = (TextView) findViewById(R.id.last_update_time_text);
         text1 = (TextView) findViewById(R.id.textView1);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -338,29 +358,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startDownloadJSONButtonHandler(View view) {
+
 //https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         Uri uri = Uri.parse("https://data.etabus.gov.hk/v1/transport/kmb/stop"); // Path where you want to download file.
         DownloadManager.Request request = new DownloadManager.Request(uri);
+        request.setTitle("Bus Stop Data");
+
+        //Setting description of request
+        request.setDescription("Bus Stop Data");
+
+
+        request.setDestinationInExternalFilesDir(MainActivity.this,
+                Environment.DIRECTORY_DOWNLOADS, "busStop.json");
+
+
+
         downloadReference = downloadManager.enqueue(request); // enqueue a new download
+
 
         // update progressbar
         progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+
                 DownloadManager.Query downloadQuery = new DownloadManager.Query();
                 downloadQuery.setFilterById(downloadReference);
 
-                Cursor cursor = downloadManager.query(downloadQuery);
+                final Cursor cursor = downloadManager.query(downloadQuery);
+
                 if (cursor.moveToFirst()) { // this "if" is crucial to prevent a kind of error
                     final int downloadedBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                     final int totalBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)); // integer is enough for files under 2GB
                     cursor.close();
 
                     final float downloadProgress = downloadedBytes * 100f / totalBytes;
-                    if(downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
+                    if (downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
                         progressTimer.cancel();
 
                     runOnUiThread(new Runnable() {
@@ -372,10 +407,53 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             }
-        }, 0, 1000);
+        }, 0, 10);
+
+
+    }
+
+    public void startReadJSONButtonHandler(View view) throws Exception {
+
+        //https://stackoverflow.com/questions/31670076/android-download-and-store-json-so-app-can-work-offline
+
+        //File path = Environment.getExternalStoragePublicDirectory(
+         //       Environment.DIRECTORY_DOWNLOADS);
+        //File file = new File(path, "busStop.json");
+
+        File yourFilePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        System.out.println(yourFilePath);
+        //File yourFile = new File(yourFilePath);
+        File yourFile = new File(yourFilePath, "busStop.json");
+
+        System.out.println(yourFile.exists());
+
+        FileInputStream fin = new FileInputStream(yourFile);
+
+
+        String JSONString = convertStreamToString(fin);
+        String showInTextView = JSONString.substring(0, 100);
+        //Make sure you close all streams.
+        fin.close();
+        busStopJSONTextView.setText(showInTextView);
+
+
+    }
+
+    public void jsonToStringHandler(View view) throws Exception {
 
 
 
+    }
+
+    public static String convertStreamToString(InputStream is) throws Exception {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        reader.close();
+        return sb.toString();
     }
 
     /**

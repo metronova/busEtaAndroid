@@ -18,9 +18,12 @@ package com.google.android.gms.location.sample.locationupdates;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -34,6 +37,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,9 +57,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -157,6 +164,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private String mLastUpdateTime;
 
+    DownloadManager downloadManager;
+    long downloadReference;
+    TextView text1;
+    ProgressBar progressBar;
+    Timer progressTimer;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -164,12 +177,15 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         // Locate the UI widgets.
         mStartUpdatesButton = (Button) findViewById(R.id.start_updates_button);
         mStopUpdatesButton = (Button) findViewById(R.id.stop_updates_button);
         mLatitudeTextView = (TextView) findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
         mLastUpdateTimeTextView = (TextView) findViewById(R.id.last_update_time_text);
+        text1 = (TextView) findViewById(R.id.textView1);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
@@ -319,6 +335,47 @@ public class MainActivity extends AppCompatActivity {
         // stopped state. Doing so helps battery performance and is especially
         // recommended in applications that request frequent location updates.
         stopLocationUpdates();
+    }
+
+    public void startDownloadJSONButtonHandler(View view) {
+//https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
+        downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+        Uri uri = Uri.parse("https://data.etabus.gov.hk/v1/transport/kmb/stop"); // Path where you want to download file.
+        DownloadManager.Request request = new DownloadManager.Request(uri);
+        downloadReference = downloadManager.enqueue(request); // enqueue a new download
+
+        // update progressbar
+        progressTimer = new Timer();
+        progressTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                DownloadManager.Query downloadQuery = new DownloadManager.Query();
+                downloadQuery.setFilterById(downloadReference);
+
+                Cursor cursor = downloadManager.query(downloadQuery);
+                if (cursor.moveToFirst()) { // this "if" is crucial to prevent a kind of error
+                    final int downloadedBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                    final int totalBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)); // integer is enough for files under 2GB
+                    cursor.close();
+
+                    final float downloadProgress = downloadedBytes * 100f / totalBytes;
+                    if(downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
+                        progressTimer.cancel();
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            text1.setText(downloadedBytes + "\n" + totalBytes + "\n" + downloadProgress + "%");
+                            progressBar.setProgress((int) downloadProgress);
+                        }
+                    });
+                }
+            }
+        }, 0, 1000);
+
+
+
     }
 
     /**

@@ -21,10 +21,12 @@
     <string name="longitude_label">Longitude</string>
     <string name="last_update_time_label">Last location update time</string>
 
-    <string name="start_updates">Start updates</string>
-    <string name="stop_updates">Stop updates</string>
+    <string name="start_update_location">Start update location</string>
+    <string name="stop_update_location">Stop update location</string>
     <string name="download_json">Download JSON</string>
-    <string name="read_json">Read JSON</string>
+    <string name="read_stop_list_json">Read Stop List JSON</string>
+    <string name="download_eta_json">Download ETA JSON</string>
+    <string name="read_eta_json">read ETA JSON</string>
 
     <string name="location_settings_inadequate_warning">The location settings on the device are not
         adequate to run this sample. Fix in Settings.</string>

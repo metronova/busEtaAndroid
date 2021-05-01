@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <LinearLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -67,7 +67,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:onClick="startUpdatesButtonHandler"
-                    android:text="@string/start_updates" />
+                    android:text="@string/start_update_location" />
 
                 <Button
                     android:id="@+id/stop_updates_button"
@@ -79,7 +79,7 @@
                     android:enabled="false"
                     android:gravity="center"
                     android:onClick="stopUpdatesButtonHandler"
-                    android:text="@string/stop_updates" />
+                    android:text="@string/stop_update_location" />
             </LinearLayout>
 
             <TextView
@@ -139,11 +139,10 @@
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/textView1"
+                android:id="@+id/progressText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/progressBar"
-                android:text="Hello World!" />
+                android:layout_below="@id/progressBar" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -160,7 +159,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:onClick="startReadJSONButtonHandler"
-                    android:text="@string/read_json" />
+                    android:text="@string/read_stop_list_json" />
 
             </LinearLayout>
 
@@ -219,17 +218,101 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/download_eta_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="10dp"
                     android:layout_marginRight="10dp"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:onClick="startReadJSONButtonHandler"
-                    android:text="@string/read_json" />
+                    android:onClick="startDownloadEtaJSONButtonHandler"
+                    android:text="@string/download_eta_json" />
 
             </LinearLayout>
 
+            <ProgressBar
+                android:id="@+id/etaProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/etaProgressText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/progressBar" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/read_eta_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:onClick="startReadEtaJSONButtonHandler"
+                    android:text="@string/read_eta_json" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/stop_eta_json"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
+
+
+            <TextView
+                android:id="@+id/eta_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
+            <TextView
+                android:id="@+id/eta_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
+            <TextView
+                android:id="@+id/eta_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
+            <TextView
+                android:id="@+id/eta_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
+            <TextView
+                android:id="@+id/eta_5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/small_margin"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:textSize="@dimen/default_text_size" />
+
         </LinearLayout>
+
     </ScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -73,6 +73,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Timer;
@@ -81,6 +85,8 @@ import java.util.TimerTask;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
+
+import static java.lang.Double.parseDouble;
 
 
 /**
@@ -186,6 +192,11 @@ public class MainActivity extends AppCompatActivity {
     long downloadReference;
     TextView text1;
     TextView busStopJSONTextView;
+    TextView busStop1TextView;
+    TextView busStop2TextView;
+    TextView busStop3TextView;
+    TextView busStop4TextView;
+    TextView busStop5TextView;
     ProgressBar progressBar;
     Timer progressTimer;
 
@@ -202,10 +213,17 @@ public class MainActivity extends AppCompatActivity {
         mStopUpdatesButton = (Button) findViewById(R.id.stop_updates_button);
         mLatitudeTextView = (TextView) findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
-        busStopJSONTextView = (TextView) findViewById(R.id.bus_stop_json);
         mLastUpdateTimeTextView = (TextView) findViewById(R.id.last_update_time_text);
-        text1 = (TextView) findViewById(R.id.textView1);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+
+        text1 = (TextView) findViewById(R.id.textView1);
+        busStopJSONTextView = (TextView) findViewById(R.id.bus_stop_json);
+        busStop1TextView = (TextView) findViewById(R.id.bus_stop_1);
+        busStop2TextView = (TextView) findViewById(R.id.bus_stop_2);
+        busStop3TextView = (TextView) findViewById(R.id.bus_stop_3);
+        busStop4TextView = (TextView) findViewById(R.id.bus_stop_4);
+        busStop5TextView = (TextView) findViewById(R.id.bus_stop_5);
 
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
@@ -374,7 +392,6 @@ public class MainActivity extends AppCompatActivity {
                 Environment.DIRECTORY_DOWNLOADS, "busStop.json");
 
 
-
         downloadReference = downloadManager.enqueue(request); // enqueue a new download
 
 
@@ -417,15 +434,15 @@ public class MainActivity extends AppCompatActivity {
         //https://stackoverflow.com/questions/31670076/android-download-and-store-json-so-app-can-work-offline
 
         //File path = Environment.getExternalStoragePublicDirectory(
-         //       Environment.DIRECTORY_DOWNLOADS);
+        //       Environment.DIRECTORY_DOWNLOADS);
         //File file = new File(path, "busStop.json");
 
         File yourFilePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        System.out.println(yourFilePath);
+        //System.out.println(yourFilePath);
         //File yourFile = new File(yourFilePath);
         File yourFile = new File(yourFilePath, "busStop.json");
 
-        System.out.println(yourFile.exists());
+        //System.out.println(yourFile.exists());
 
         FileInputStream fin = new FileInputStream(yourFile);
 
@@ -436,11 +453,111 @@ public class MainActivity extends AppCompatActivity {
         fin.close();
         busStopJSONTextView.setText(showInTextView);
 
+        JSONObject result = new JSONObject(JSONString);
+
+        //System.out.println(result.get("type"));
+        JSONArray jsonArray = result.getJSONArray("data");
+
+        ArrayList<Object> listData = new ArrayList<Object>();
+
+        //Checking whether the JSON array has some value or not
+        if (jsonArray != null) {
+
+            //Iterating JSON array
+            for (int i = 0; i < jsonArray.length(); i++) {
+
+                //Adding each element of JSON array into ArrayList
+                listData.add(jsonArray.get(i));
+            }
+        }
+
+        double lat = 0;
+        double lon = 0;
+
+        ArrayList<String[]> distanceArray = new ArrayList<String[]>();
+
+        if (mCurrentLocation != null) {
+            lat = mCurrentLocation.getLatitude();
+        }
+        if (mCurrentLocation != null) {
+            lon = mCurrentLocation.getLongitude();
+        }
+
+        for (int i = 0; i < listData.size(); i++) {
+            Object array = listData.get(i);
+            String[] tmpArray = new String[7];
+            //System.out.println(array.toString());
+
+            JSONObject result2 = new JSONObject(array.toString());
+
+            double stopLat = Float.parseFloat(result2.get("lat").toString());
+            double stopLon = Float.parseFloat(result2.get("long").toString());
+
+
+            double distance;
+
+            double latDiff = lat - stopLat;
+            double lonDiff = lon - stopLon;
+
+            distance = Math.sqrt(Math.pow(latDiff, 2) + Math.pow(lonDiff, 2));
+
+            /*System.out.println(" ");
+            System.out.println(result2.get("name_tc").toString());
+            System.out.println("distance " + distance);
+            System.out.println("latDiff" + " " + latDiff);
+            System.out.println("lonDiff" + " " + lonDiff);
+            System.out.println("Stop location" + " " + stopLat + " " + stopLon);
+            System.out.println("current location" + " " + lat + " " + lon);*/
+
+            result2.accumulate("distance", distance);
+            //System.out.println(result2.toString());
+
+            tmpArray[0] = result2.get("stop").toString();
+            tmpArray[1] = result2.get("name_en").toString();
+            tmpArray[2] = result2.get("name_tc").toString();
+            tmpArray[3] = result2.get("name_sc").toString();
+            tmpArray[4] = result2.get("lat").toString();
+            tmpArray[5] = result2.get("long").toString();
+            tmpArray[6] = result2.get("distance").toString();
+
+            distanceArray.add(tmpArray);
+
+        }
+
+
+        // Sort list
+        Collections.sort(distanceArray, new Comparator<String[]>() {
+            public int compare(String[] x, String[] y) {
+                if(parseDouble(x[6]) < parseDouble(y[6])) {
+                    return -1;
+                } else if(parseDouble(x[6]) == parseDouble(y[6])) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        });
+
+        // Output list
+        /*for(String[] strs : distanceArray) {
+            System.out.println(Arrays.toString(strs));
+        }*/
+
+        System.out.println(Arrays.toString(distanceArray.get(0)));
+        System.out.println(Arrays.toString(distanceArray.get(1)));
+        System.out.println(Arrays.toString(distanceArray.get(2)));
+        System.out.println(Arrays.toString(distanceArray.get(3)));
+        System.out.println(Arrays.toString(distanceArray.get(4)));
+
+        busStop1TextView.setText(Arrays.toString(distanceArray.get(0)));
+        busStop2TextView.setText(Arrays.toString(distanceArray.get(1)));
+        busStop3TextView.setText(Arrays.toString(distanceArray.get(2)));
+        busStop4TextView.setText(Arrays.toString(distanceArray.get(3)));
+        busStop5TextView.setText(Arrays.toString(distanceArray.get(4)));
 
     }
 
     public void jsonToStringHandler(View view) throws Exception {
-
 
 
     }
@@ -540,6 +657,8 @@ public class MainActivity extends AppCompatActivity {
                     mCurrentLocation.getLongitude()));
             mLastUpdateTimeTextView.setText(String.format(Locale.ENGLISH, "%s: %s",
                     mLastUpdateTimeLabel, mLastUpdateTime));
+
+
         }
     }
 

@@ -69,8 +69,6 @@ import org.json.JSONArray;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
@@ -82,10 +80,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
 
 import static java.lang.Double.parseDouble;
 
@@ -379,27 +373,113 @@ public class MainActivity extends AppCompatActivity {
         stopLocationUpdates();
     }
 
-    private void downloadJSON() {
+    private void downloadJSON(String url, String title, String description, String subPath) {
+
+
 
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-        Uri uri = Uri.parse(BUS_STOP_JSON_URL); // Path where you want to download file.
+        Uri uri = Uri.parse(url); // Path where you want to download file.
         DownloadManager.Request request = new DownloadManager.Request(uri);
-        request.setTitle("Bus Stop Data");
+        request.setTitle(title);
 
         //Setting description of request
-        request.setDescription("Bus Stop Data");
+        request.setDescription(description);
 
 
         request.setDestinationInExternalFilesDir(MainActivity.this,
-                Environment.DIRECTORY_DOWNLOADS, "busStop.json");
+                Environment.DIRECTORY_DOWNLOADS, subPath);
 
 
         downloadReference = downloadManager.enqueue(request); // enqueue a new download
 
     }
 
-    private void progressBarFunction() {
+    private int DownloadStatus(Cursor cursor) {
+
+        //https://www.codeproject.com/articles/1112730/android-download-manager-tutorial-how-to-download
+
+        //column for download  status
+        int columnIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+        int status = cursor.getInt(columnIndex);
+        //column for reason code if the download failed or paused
+        int columnReason = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
+        int reason = cursor.getInt(columnReason);
+        //get the download filename
+        //int filenameIndex = cursor.getColumnIndex(DownloadManager.COLUMN_LOCAL_FILENAME);
+        //String filename = cursor.getString(filenameIndex);
+
+        String statusText = "";
+        String reasonText = "";
+
+        switch (status) {
+            case DownloadManager.STATUS_FAILED:
+                statusText = "STATUS_FAILED";
+                switch (reason) {
+                    case DownloadManager.ERROR_CANNOT_RESUME:
+                        reasonText = "ERROR_CANNOT_RESUME";
+                        break;
+                    case DownloadManager.ERROR_DEVICE_NOT_FOUND:
+                        reasonText = "ERROR_DEVICE_NOT_FOUND";
+                        break;
+                    case DownloadManager.ERROR_FILE_ALREADY_EXISTS:
+                        reasonText = "ERROR_FILE_ALREADY_EXISTS";
+                        break;
+                    case DownloadManager.ERROR_FILE_ERROR:
+                        reasonText = "ERROR_FILE_ERROR";
+                        break;
+                    case DownloadManager.ERROR_HTTP_DATA_ERROR:
+                        reasonText = "ERROR_HTTP_DATA_ERROR";
+                        break;
+                    case DownloadManager.ERROR_INSUFFICIENT_SPACE:
+                        reasonText = "ERROR_INSUFFICIENT_SPACE";
+                        break;
+                    case DownloadManager.ERROR_TOO_MANY_REDIRECTS:
+                        reasonText = "ERROR_TOO_MANY_REDIRECTS";
+                        break;
+                    case DownloadManager.ERROR_UNHANDLED_HTTP_CODE:
+                        reasonText = "ERROR_UNHANDLED_HTTP_CODE";
+                        break;
+                    case DownloadManager.ERROR_UNKNOWN:
+                        reasonText = "ERROR_UNKNOWN";
+                        break;
+                }
+                break;
+            case DownloadManager.STATUS_PAUSED:
+                statusText = "STATUS_PAUSED";
+                switch (reason) {
+                    case DownloadManager.PAUSED_QUEUED_FOR_WIFI:
+                        reasonText = "PAUSED_QUEUED_FOR_WIFI";
+                        break;
+                    case DownloadManager.PAUSED_UNKNOWN:
+                        reasonText = "PAUSED_UNKNOWN";
+                        break;
+                    case DownloadManager.PAUSED_WAITING_FOR_NETWORK:
+                        reasonText = "PAUSED_WAITING_FOR_NETWORK";
+                        break;
+                    case DownloadManager.PAUSED_WAITING_TO_RETRY:
+                        reasonText = "PAUSED_WAITING_TO_RETRY";
+                        break;
+                }
+                break;
+            case DownloadManager.STATUS_PENDING:
+                statusText = "STATUS_PENDING";
+                break;
+            case DownloadManager.STATUS_RUNNING:
+                statusText = "STATUS_RUNNING";
+                break;
+            case DownloadManager.STATUS_SUCCESSFUL:
+                statusText = "STATUS_SUCCESSFUL";
+                break;
+        }
+
+        return status;
+
+
+    }
+
+
+    private void checkDownloadStatusFunction(final TextView progressText, final ProgressBar progressBar) {
         // update progressbar
         progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
@@ -414,7 +494,7 @@ public class MainActivity extends AppCompatActivity {
                 if (cursor.moveToFirst()) { // this "if" is crucial to prevent a kind of error
                     final int downloadedBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                     final int totalBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)); // integer is enough for files under 2GB
-                    cursor.close();
+
 
                     final float downloadProgress = downloadedBytes * 100f / totalBytes;
                     if (downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
@@ -428,34 +508,58 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
+
+
+                int downloadStatus = DownloadStatus(cursor);
+
+                removeTmpFile(downloadStatus, cursor);
+
+
             }
         }, 0, 10);
     }
 
+    public void removeTmpFile(int downloadStatus, Cursor cursor) {
+        if (downloadStatus == DownloadManager.STATUS_SUCCESSFUL) {
+
+            File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+            File file = new File(filePath, "busStopTmp.json");
+            File file2 = new File(filePath, "busStop.json");
+
+            file2.delete();
+            file.renameTo(file2);
+            file.delete();
+
+            cursor.close();
+
+        }
+
+
+    }
 
     public void startDownloadJSONButtonHandler(View view) {
 
-//https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
-        downloadJSON();
-        progressBarFunction();
+        //https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
+        downloadJSON(BUS_STOP_JSON_URL, "Bus Stop Data", "Bus Stop Data", "busStopTmp.json");
+        checkDownloadStatusFunction(progressText, progressBar);
+
 
     }
 
     public void startReadJSONButtonHandler(View view) throws Exception {
 
 
-
         ArrayList<String[]> distanceArray = new ArrayList<String[]>();
         ArrayList<Object> listData = new ArrayList<Object>();
 
-        convertJsonToArrayList(listData);
+        convertJsonToArrayList(listData, "busStop.json", busStopJSONTextView);
         createDistanceArray(distanceArray, listData);
         sortDistanceArray(distanceArray);
         outputDistanceData(distanceArray);
 
     }
 
-    private void convertJsonToArrayList(ArrayList<Object> listData) throws Exception {
+    private void convertJsonToArrayList(ArrayList<Object> listData, String filename, TextView showTextView) throws Exception {
 
 
         //https://stackoverflow.com/questions/31670076/android-download-and-store-json-so-app-can-work-offline
@@ -464,27 +568,27 @@ public class MainActivity extends AppCompatActivity {
         //       Environment.DIRECTORY_DOWNLOADS);
         //File file = new File(path, "busStop.json");
 
-        File yourFilePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         //System.out.println(yourFilePath);
         //File yourFile = new File(yourFilePath);
-        File yourFile = new File(yourFilePath, "busStop.json");
+        File file = new File(filePath, filename);
 
         //System.out.println(yourFile.exists());
 
-        FileInputStream fin = new FileInputStream(yourFile);
+        FileInputStream fileStream = new FileInputStream(file);
 
 
-        String JSONString = convertStreamToString(fin);
-        String showInTextView = JSONString.substring(0, 100);
+        String JSONString = convertStreamToString(fileStream);
         //Make sure you close all streams.
-        fin.close();
-        busStopJSONTextView.setText(showInTextView);
+        fileStream.close();
+
+        String showInTextView = JSONString.substring(0, 100);
+        showTextView.setText(showInTextView);
 
         JSONObject result = new JSONObject(JSONString);
 
         //System.out.println(result.get("type"));
         JSONArray jsonArray = result.getJSONArray("data");
-
 
 
         //Checking whether the JSON array has some value or not

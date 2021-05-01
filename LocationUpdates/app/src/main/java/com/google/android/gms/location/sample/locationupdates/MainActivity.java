@@ -62,6 +62,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
@@ -134,6 +135,8 @@ public class MainActivity extends AppCompatActivity {
     private final static String KEY_LOCATION = "location";
     private final static String KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string";
 
+    private final static String BUS_STOP_JSON_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop";
+
     /**
      * Provides access to the Fused Location Provider API.
      */
@@ -171,6 +174,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView mLastUpdateTimeTextView;
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
+    private TextView progressText;
+    private TextView busStopJSONTextView;
+    private TextView busStop1TextView;
+    private TextView busStop2TextView;
+    private TextView busStop3TextView;
+    private TextView busStop4TextView;
+    private TextView busStop5TextView;
 
     // Labels.
     private String mLatitudeLabel;
@@ -190,13 +200,7 @@ public class MainActivity extends AppCompatActivity {
 
     DownloadManager downloadManager;
     long downloadReference;
-    TextView text1;
-    TextView busStopJSONTextView;
-    TextView busStop1TextView;
-    TextView busStop2TextView;
-    TextView busStop3TextView;
-    TextView busStop4TextView;
-    TextView busStop5TextView;
+
     ProgressBar progressBar;
     Timer progressTimer;
 
@@ -217,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
 
-        text1 = (TextView) findViewById(R.id.textView1);
+        progressText = (TextView) findViewById(R.id.textView1);
         busStopJSONTextView = (TextView) findViewById(R.id.bus_stop_json);
         busStop1TextView = (TextView) findViewById(R.id.bus_stop_1);
         busStop2TextView = (TextView) findViewById(R.id.bus_stop_2);
@@ -375,12 +379,11 @@ public class MainActivity extends AppCompatActivity {
         stopLocationUpdates();
     }
 
-    public void startDownloadJSONButtonHandler(View view) {
+    private void downloadJSON() {
 
-//https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-        Uri uri = Uri.parse("https://data.etabus.gov.hk/v1/transport/kmb/stop"); // Path where you want to download file.
+        Uri uri = Uri.parse(BUS_STOP_JSON_URL); // Path where you want to download file.
         DownloadManager.Request request = new DownloadManager.Request(uri);
         request.setTitle("Bus Stop Data");
 
@@ -394,7 +397,9 @@ public class MainActivity extends AppCompatActivity {
 
         downloadReference = downloadManager.enqueue(request); // enqueue a new download
 
+    }
 
+    private void progressBarFunction() {
         // update progressbar
         progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
@@ -418,18 +423,40 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            text1.setText(downloadedBytes + " bytes\n" + totalBytes + " bytes\n" + downloadProgress + "%");
+                            progressText.setText(downloadedBytes + " bytes\n" + totalBytes + " bytes\n" + downloadProgress + "%");
                             progressBar.setProgress((int) downloadProgress);
                         }
                     });
                 }
             }
         }, 0, 10);
+    }
 
+
+    public void startDownloadJSONButtonHandler(View view) {
+
+//https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
+        downloadJSON();
+        progressBarFunction();
 
     }
 
     public void startReadJSONButtonHandler(View view) throws Exception {
+
+
+
+        ArrayList<String[]> distanceArray = new ArrayList<String[]>();
+        ArrayList<Object> listData = new ArrayList<Object>();
+
+        convertJsonToArrayList(listData);
+        createDistanceArray(distanceArray, listData);
+        sortDistanceArray(distanceArray);
+        outputDistanceData(distanceArray);
+
+    }
+
+    private void convertJsonToArrayList(ArrayList<Object> listData) throws Exception {
+
 
         //https://stackoverflow.com/questions/31670076/android-download-and-store-json-so-app-can-work-offline
 
@@ -458,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
         //System.out.println(result.get("type"));
         JSONArray jsonArray = result.getJSONArray("data");
 
-        ArrayList<Object> listData = new ArrayList<Object>();
+
 
         //Checking whether the JSON array has some value or not
         if (jsonArray != null) {
@@ -470,11 +497,13 @@ public class MainActivity extends AppCompatActivity {
                 listData.add(jsonArray.get(i));
             }
         }
+    }
+
+    private void createDistanceArray(ArrayList<String[]> distanceArray, ArrayList<Object> listData) throws JSONException {
+
 
         double lat = 0;
         double lon = 0;
-
-        ArrayList<String[]> distanceArray = new ArrayList<String[]>();
 
         if (mCurrentLocation != null) {
             lat = mCurrentLocation.getLatitude();
@@ -524,30 +553,20 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+    }
 
-        // Sort list
-        Collections.sort(distanceArray, new Comparator<String[]>() {
-            public int compare(String[] x, String[] y) {
-                if(parseDouble(x[6]) < parseDouble(y[6])) {
-                    return -1;
-                } else if(parseDouble(x[6]) == parseDouble(y[6])) {
-                    return 0;
-                } else {
-                    return 1;
-                }
-            }
-        });
+    private void outputDistanceData(ArrayList<String[]> distanceArray) {
 
         // Output list
         /*for(String[] strs : distanceArray) {
             System.out.println(Arrays.toString(strs));
         }*/
 
-        System.out.println(Arrays.toString(distanceArray.get(0)));
+        /*System.out.println(Arrays.toString(distanceArray.get(0)));
         System.out.println(Arrays.toString(distanceArray.get(1)));
         System.out.println(Arrays.toString(distanceArray.get(2)));
         System.out.println(Arrays.toString(distanceArray.get(3)));
-        System.out.println(Arrays.toString(distanceArray.get(4)));
+        System.out.println(Arrays.toString(distanceArray.get(4)));*/
 
         busStop1TextView.setText(Arrays.toString(distanceArray.get(0)));
         busStop2TextView.setText(Arrays.toString(distanceArray.get(1)));
@@ -555,6 +574,21 @@ public class MainActivity extends AppCompatActivity {
         busStop4TextView.setText(Arrays.toString(distanceArray.get(3)));
         busStop5TextView.setText(Arrays.toString(distanceArray.get(4)));
 
+    }
+
+    private void sortDistanceArray(ArrayList<String[]> distanceArray) {
+        // Sort list
+        Collections.sort(distanceArray, new Comparator<String[]>() {
+            public int compare(String[] x, String[] y) {
+                if (parseDouble(x[6]) < parseDouble(y[6])) {
+                    return -1;
+                } else if (parseDouble(x[6]) == parseDouble(y[6])) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            }
+        });
     }
 
     public void jsonToStringHandler(View view) throws Exception {

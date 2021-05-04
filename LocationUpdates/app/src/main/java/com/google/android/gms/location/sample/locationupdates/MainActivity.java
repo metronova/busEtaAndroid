@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
     ProgressBar etaProgressBar;
     Timer progressTimer;
-    ArrayList<String[]> closestStop = new ArrayList<String[]>();
+    ArrayList<BusStop> closestStop = new ArrayList<BusStop>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -263,6 +263,137 @@ public class MainActivity extends AppCompatActivity {
         buildLocationSettingsRequest();
     }
 
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Remove location updates to save battery.
+        stopLocationUpdates();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Within {@code onPause()}, we remove location updates. Here, we resume receiving
+        // location updates if the user has requested them.
+        if (mRequestingLocationUpdates && checkPermissions()) {
+            startLocationUpdates();
+        } else if (!checkPermissions()) {
+            requestPermissions();
+        }
+
+        updateUI();
+    }
+
+
+    /**
+     * Stores activity data in the Bundle.
+     */
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
+        savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
+        savedInstanceState.putString(KEY_LAST_UPDATED_TIME_STRING, mLastUpdateTime);
+        super.onSaveInstanceState(savedInstanceState);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            // Check for the integer request code originally supplied to startResolutionForResult().
+            case REQUEST_CHECK_SETTINGS:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        Log.i(TAG, "User agreed to make required location settings changes.");
+                        // Nothing to do. startLocationupdates() gets called in onResume again.
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        Log.i(TAG, "User chose not to make required location settings changes.");
+                        mRequestingLocationUpdates = false;
+                        updateUI();
+                        break;
+                }
+                break;
+        }
+    }
+
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        Log.i(TAG, "onRequestPermissionResult");
+        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
+            if (grantResults.length <= 0) {
+                // If user interaction was interrupted, the permission request is cancelled and you
+                // receive empty arrays.
+                Log.i(TAG, "User interaction was cancelled.");
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (mRequestingLocationUpdates) {
+                    Log.i(TAG, "Permission granted, updates requested, starting location updates");
+                    startLocationUpdates();
+                }
+            } else {
+                // Permission denied.
+
+                // Notify the user via a SnackBar that they have rejected a core permission for the
+                // app, which makes the Activity useless. In a real app, core permissions would
+                // typically be best requested during a welcome-screen flow.
+
+                // Additionally, it is important to remember that a permission might have been
+                // rejected without asking the user for permission (device policy or "Never ask
+                // again" prompts). Therefore, a user interface affordance is typically implemented
+                // when permissions are denied. Otherwise, your app could appear unresponsive to
+                // touches or interactions which have required permissions.
+                showSnackbar(R.string.permission_denied_explanation,
+                        R.string.settings, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                // Build intent that displays the App settings screen.
+                                Intent intent = new Intent();
+                                intent.setAction(
+                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package",
+                                        BuildConfig.APPLICATION_ID, null);
+                                intent.setData(uri);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            }
+                        });
+            }
+        }
+    }
+
+    //////////////////////////////////////////////////////////
+    //Button Handler
+    //////////////////////////////////////////////////////////
+
+    /**
+     * Handles the Start Updates button and requests start of location updates. Does nothing if
+     * updates have already been requested.
+     */
+    public void startUpdatesButtonHandler(View view) {
+        if (!mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = true;
+            setButtonsEnabledState();
+            startLocationUpdates();
+        }
+    }
+
+    /**
+     * Handles the Stop Updates button, and requests removal of location updates.
+     */
+    public void stopUpdatesButtonHandler(View view) {
+        // It is a good practice to remove location requests when the activity is in a paused or
+        // stopped state. Doing so helps battery performance and is especially
+        // recommended in applications that request frequent location updates.
+        stopLocationUpdates();
+    }
+
     /**
      * Updates fields based on data stored in the bundle.
      *
@@ -292,6 +423,88 @@ public class MainActivity extends AppCompatActivity {
             updateUI();
         }
     }
+
+
+
+    public void startDownloadJSONButtonHandler(View view) {
+
+        //https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
+        downloadJSON(BUS_STOP_JSON_URL, "Bus Stop Data", "Bus Stop Data", "busStopTmp.json");
+        checkDownloadStatusFunction(progressText, progressBar, "busStopTmp.json", "busStop.json");
+
+
+    }
+
+    public void startReadJSONButtonHandler(View view) throws Exception {
+
+
+        ArrayList<BusStop> distanceArray = new ArrayList<BusStop>();
+        ArrayList<Object> listData = new ArrayList<Object>();
+
+
+        convertJsonToArrayList(listData, "busStop.json", busStopJSONTextView);
+        createDistanceArray(distanceArray, listData);
+        sortDistanceArray(distanceArray);
+        outputDistanceData(distanceArray, closestStop);
+
+
+    }
+
+    public void startReadEtaJSONButtonHandler(View view) throws Exception {
+
+        ArrayList<ArrayList<StopEta>> fiveEtaArray =  new ArrayList<ArrayList<StopEta>>();
+
+        for (int i = 0; i < 5; i++) {
+            ArrayList<Object> listData = new ArrayList<Object>();
+            ArrayList<StopEta> oneEtaArray = new ArrayList<StopEta>();
+
+            BusStop busStop = closestStop.get(i);
+            String stopID = busStop.getStopID();
+            convertJsonToArrayList(listData, stopID + " ETA.json", stopEtaJSONTextView);
+            createEtaArray(oneEtaArray, listData);
+            fiveEtaArray.add(oneEtaArray);
+        }
+
+        outputEtaData(fiveEtaArray);
+
+    }
+
+    public void startDownloadEtaJSONButtonHandler(View view) throws Exception {
+        for (int i = 0; i < 5; i++) {
+            TextView dummyTxt = new TextView(MainActivity.this);
+            ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
+
+            BusStop busStop = closestStop.get(i);
+            String stopID = busStop.getStopID();
+
+            System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
+            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", stopID + " ETA_Tmp.json");
+            checkDownloadStatusFunction(etaProgressText, etaProgressBar, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+        }
+    }
+
+
+
+    /**
+     * Disables both buttons when functionality is disabled due to insuffucient location settings.
+     * Otherwise ensures that only one button is enabled at any time. The Start Updates button is
+     * enabled if the user is not requesting location updates. The Stop Updates button is enabled
+     * if the user is requesting location updates.
+     */
+    private void setButtonsEnabledState() {
+        if (mRequestingLocationUpdates) {
+            mStartUpdatesButton.setEnabled(false);
+            mStopUpdatesButton.setEnabled(true);
+        } else {
+            mStartUpdatesButton.setEnabled(true);
+            mStopUpdatesButton.setEnabled(false);
+        }
+    }
+
+    //////////////////////////////////////////////////////////
+    //Location Fnction
+    //////////////////////////////////////////////////////////
+
 
     /**
      * Sets up the location request. Android has two location request settings:
@@ -338,6 +551,58 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+
+    /**
+     * Requests location updates from the FusedLocationApi. Note: we don't call this unless location
+     * runtime permission has been granted.
+     */
+    private void startLocationUpdates() {
+        // Begin by checking if the device has the necessary location settings.
+        mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
+                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+                    @Override
+                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                        Log.i(TAG, "All location settings are satisfied.");
+
+                        //noinspection MissingPermission
+                        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
+                                mLocationCallback, Looper.myLooper());
+
+                        updateUI();
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        int statusCode = ((ApiException) e).getStatusCode();
+                        switch (statusCode) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
+                                        "location settings ");
+                                try {
+                                    // Show the dialog by calling startResolutionForResult(), and check the
+                                    // result in onActivityResult().
+                                    ResolvableApiException rae = (ResolvableApiException) e;
+                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                                } catch (IntentSender.SendIntentException sie) {
+                                    Log.i(TAG, "PendingIntent unable to execute request.");
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                String errorMessage = "Location settings are inadequate, and cannot be " +
+                                        "fixed here. Fix in Settings.";
+                                Log.e(TAG, errorMessage);
+                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                                mRequestingLocationUpdates = false;
+                        }
+
+                        updateUI();
+                    }
+                });
+    }
+
+
+
     /**
      * Uses a {@link com.google.android.gms.location.LocationSettingsRequest.Builder} to build
      * a {@link com.google.android.gms.location.LocationSettingsRequest} that is used for checking
@@ -349,48 +614,53 @@ public class MainActivity extends AppCompatActivity {
         mLocationSettingsRequest = builder.build();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            // Check for the integer request code originally supplied to startResolutionForResult().
-            case REQUEST_CHECK_SETTINGS:
-                switch (resultCode) {
-                    case Activity.RESULT_OK:
-                        Log.i(TAG, "User agreed to make required location settings changes.");
-                        // Nothing to do. startLocationupdates() gets called in onResume again.
-                        break;
-                    case Activity.RESULT_CANCELED:
-                        Log.i(TAG, "User chose not to make required location settings changes.");
-                        mRequestingLocationUpdates = false;
-                        updateUI();
-                        break;
-                }
-                break;
+
+
+    /**
+     * Sets the value of the UI fields for the location latitude, longitude and last update time.
+     */
+    private void updateLocationUI() {
+        if (mCurrentLocation != null) {
+            mLatitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLatitudeLabel,
+                    mCurrentLocation.getLatitude()));
+            mLongitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLongitudeLabel,
+                    mCurrentLocation.getLongitude()));
+            mLastUpdateTimeTextView.setText(String.format(Locale.ENGLISH, "%s: %s",
+                    mLastUpdateTimeLabel, mLastUpdateTime));
+
+
         }
     }
 
+    //////////////////////////////////////////////////////////
+    //JSON download
+    //////////////////////////////////////////////////////////
+
     /**
-     * Handles the Start Updates button and requests start of location updates. Does nothing if
-     * updates have already been requested.
+     * Removes location updates from the FusedLocationApi.
      */
-    public void startUpdatesButtonHandler(View view) {
+    private void stopLocationUpdates() {
         if (!mRequestingLocationUpdates) {
-            mRequestingLocationUpdates = true;
-            setButtonsEnabledState();
-            startLocationUpdates();
+            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
+            return;
         }
-    }
 
-    /**
-     * Handles the Stop Updates button, and requests removal of location updates.
-     */
-    public void stopUpdatesButtonHandler(View view) {
         // It is a good practice to remove location requests when the activity is in a paused or
         // stopped state. Doing so helps battery performance and is especially
         // recommended in applications that request frequent location updates.
-        stopLocationUpdates();
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback)
+                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        mRequestingLocationUpdates = false;
+                        setButtonsEnabledState();
+                    }
+                });
     }
+
+
+
+
 
     private void downloadJSON(String url, String title, String description, String subPath) {
 
@@ -499,8 +769,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void checkDownloadStatusFunction(final TextView progressText, final ProgressBar progressBar, final String tmpFileName, final String realFileName) {
-        System.out.println(tmpFileName);
-        System.out.println(realFileName);
+        //System.out.println(tmpFileName);
+        //System.out.println(realFileName);
         // update progressbar
         progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
@@ -540,7 +810,7 @@ public class MainActivity extends AppCompatActivity {
         }, 0, 10);
     }
 
-    public void removeTmpFile( String tmpFileName, String realFileName) {
+    private void removeTmpFile( String tmpFileName, String realFileName) {
 
         File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
 
@@ -556,62 +826,22 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void startDownloadJSONButtonHandler(View view) {
 
-        //https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
-        downloadJSON(BUS_STOP_JSON_URL, "Bus Stop Data", "Bus Stop Data", "busStopTmp.json");
-        checkDownloadStatusFunction(progressText, progressBar, "busStopTmp.json", "busStop.json");
-
-
-    }
-
-    public void startReadJSONButtonHandler(View view) throws Exception {
-
-
-        ArrayList<String[]> distanceArray = new ArrayList<String[]>();
-        ArrayList<Object> listData = new ArrayList<Object>();
-
-
-        convertJsonToArrayList(listData, "busStop.json", busStopJSONTextView);
-        createDistanceArray(distanceArray, listData);
-        sortDistanceArray(distanceArray);
-        outputDistanceData(distanceArray, closestStop);
-
-
-    }
-
-    public void startReadEtaJSONButtonHandler(View view) throws Exception {
-
-        ArrayList<ArrayList<String[]>> fiveEtaArray =  new ArrayList<ArrayList<String[]>>();
-
-        for (int i = 0; i < 5; i++) {
-            ArrayList<Object> listData = new ArrayList<Object>();
-            ArrayList<String[]> oneEtaArray = new ArrayList<String[]>();
-
-            String[] stopInfoArray = closestStop.get(i);
-            String stopID = stopInfoArray[0];
-            convertJsonToArrayList(listData, stopID + " ETA.json", stopEtaJSONTextView);
-            createEtaArray(oneEtaArray, listData);
-            fiveEtaArray.add(oneEtaArray);
+    private static String convertStreamToString(InputStream is) throws Exception {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
         }
-
-        outputEtaData(fiveEtaArray);
-
+        reader.close();
+        return sb.toString();
     }
 
-    public void startDownloadEtaJSONButtonHandler(View view) throws Exception {
-        for (int i = 0; i < 5; i++) {
-            TextView dummyTxt = new TextView(MainActivity.this);
-            ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
 
-            String[] stopInfoArray = closestStop.get(i);
-            String stopID = stopInfoArray[0];
-
-            System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
-            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", stopID + " ETA_Tmp.json");
-            checkDownloadStatusFunction(etaProgressText, etaProgressBar, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-        }
-    }
+    //////////////////////////////////////////////////////////
+    //Array
+    //////////////////////////////////////////////////////////
 
     private void convertJsonToArrayList(ArrayList<Object> listData, String filename, TextView showTextView) throws Exception {
 
@@ -657,7 +887,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void createDistanceArray(ArrayList<String[]> distanceArray, ArrayList<Object> listData) throws JSONException {
+    private void createDistanceArray(ArrayList<BusStop> distanceArray, ArrayList<Object> listData) throws JSONException {
 
 
         double lat = 0;
@@ -672,7 +902,14 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < listData.size(); i++) {
             Object array = listData.get(i);
+
+
+
+            BusStop busStop = new BusStop();
             String[] tmpArray = new String[7];
+
+
+
             //System.out.println(array.toString());
 
             JSONObject result2 = new JSONObject(array.toString());
@@ -699,53 +936,53 @@ public class MainActivity extends AppCompatActivity {
             result2.accumulate("distance", distance);
             //System.out.println(result2.toString());
 
-            tmpArray[0] = result2.get("stop").toString();
-            tmpArray[1] = result2.get("name_en").toString();
-            tmpArray[2] = result2.get("name_tc").toString();
-            tmpArray[3] = result2.get("name_sc").toString();
-            tmpArray[4] = result2.get("lat").toString();
-            tmpArray[5] = result2.get("long").toString();
-            tmpArray[6] = result2.get("distance").toString();
+            busStop.setStopID(result2.get("stop").toString());
+            busStop.setNameEn(result2.get("name_en").toString());
+            busStop.setNameTc(result2.get("name_tc").toString());
+            busStop.setNameSc(result2.get("name_sc").toString());
+            busStop.setLat(result2.get("lat").toString());
+            busStop.setLon(result2.get("long").toString());
+            busStop.setDistance(result2.get("distance").toString());
 
-            distanceArray.add(tmpArray);
+            distanceArray.add(busStop);
 
         }
 
     }
 
-    private void createEtaArray(ArrayList<String[]> etaArray, ArrayList<Object> listData) throws JSONException {
+    private void createEtaArray(ArrayList<StopEta> etaArray, ArrayList<Object> listData) throws JSONException {
 
         for (int i = 0; i < listData.size(); i++) {
             Object array = listData.get(i);
-            String[] tmpArray = new String[14];
+            StopEta stopEta = new StopEta();
             //System.out.println(array.toString());
 
             JSONObject result2 = new JSONObject(array.toString());
 
             //System.out.println(result2.toString());
 
-            tmpArray[0] = result2.get("co").toString();
-            tmpArray[1] = result2.get("route").toString();
-            tmpArray[2] = result2.get("dir").toString();
-            tmpArray[3] = result2.get("service_type").toString();
-            tmpArray[4] = result2.get("seq").toString();
-            tmpArray[5] = result2.get("dest_tc").toString();
-            tmpArray[6] = result2.get("dest_sc").toString();
-            tmpArray[7] = result2.get("dest_en").toString();
-            tmpArray[8] = result2.get("eta_seq").toString();
-            tmpArray[9] = result2.get("eta").toString();
-            tmpArray[10] = result2.get("rmk_tc").toString();
-            tmpArray[11] = result2.get("rmk_sc").toString();
-            tmpArray[12] = result2.get("rmk_en").toString();
-            tmpArray[13] = result2.get("data_timestamp").toString();
+            stopEta.setCo(result2.get("co").toString());
+            stopEta.setRoute(result2.get("route").toString());
+            stopEta.setDir(result2.get("dir").toString());
+            stopEta.setServiceType(result2.get("service_type").toString());
+            stopEta.setSeq(result2.get("seq").toString());
+            stopEta.setDestTc(result2.get("dest_tc").toString());
+            stopEta.setDestSc(result2.get("dest_sc").toString());
+            stopEta.setDestEn(result2.get("dest_en").toString());
+            stopEta.setEtaSeq(result2.get("eta_seq").toString());
+            stopEta.setEta(result2.get("eta").toString());
+            stopEta.setRmkTc(result2.get("rmk_tc").toString());
+            stopEta.setRmkSc(result2.get("rmk_sc").toString());
+            stopEta.setRmkEn(result2.get("rmk_en").toString());
+            stopEta.setDataTimestamp(result2.get("data_timestamp").toString());
 
-            etaArray.add(tmpArray);
+            etaArray.add(stopEta);
 
         }
 
     }
 
-    private void outputEtaData(ArrayList<ArrayList<String[]>> fiveEtaArray) {
+    private void outputEtaData(ArrayList<ArrayList<StopEta>> fiveEtaArray) {
 
         // Output list
         /*for(String[] strs : distanceArray) {
@@ -763,27 +1000,26 @@ public class MainActivity extends AppCompatActivity {
         String eta3 = "";
         String eta4 = "";
         String eta5 = "";
-        String tmp = "";
+        String tmpString = "";
 
         for(int j = 0; j<5; j++) {
-            tmp = "";
+            tmpString = "";
             for (int i = 0; i < fiveEtaArray.get(j).size(); i++) {
-                String[] tmpArray = fiveEtaArray.get(j).get(i);
-                tmp += tmpArray[1]; //route
-                tmp += " " + tmpArray[9]; //eta
-                tmp += "\n";
+                StopEta stopEta = fiveEtaArray.get(j).get(i);
+                tmpString += stopEta.toString();
+                tmpString += "\n";
             }
             switch(j){
                 case 0:
-                    eta1 = tmp;
+                    eta1 = tmpString;
                 case 1:
-                    eta2 = tmp;
+                    eta2 = tmpString;
                 case 2:
-                    eta3 = tmp;
+                    eta3 = tmpString;
                 case 3:
-                    eta4 = tmp;
+                    eta4 = tmpString;
                 case 4:
-                    eta5 = tmp;
+                    eta5 = tmpString;
             }
         }
         eta1TextView.setText(eta1);
@@ -794,7 +1030,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void outputDistanceData(ArrayList<String[]> distanceArray, ArrayList<String[]> closestStop) {
+    private void outputDistanceData(ArrayList<BusStop> distanceArray, ArrayList<BusStop> closestStop) {
 
         // Output list
         /*for(String[] strs : distanceArray) {
@@ -807,11 +1043,11 @@ public class MainActivity extends AppCompatActivity {
         System.out.println(Arrays.toString(distanceArray.get(3)));
         System.out.println(Arrays.toString(distanceArray.get(4)));*/
 
-        busStop1TextView.setText(Arrays.toString(distanceArray.get(0)));
-        busStop2TextView.setText(Arrays.toString(distanceArray.get(1)));
-        busStop3TextView.setText(Arrays.toString(distanceArray.get(2)));
-        busStop4TextView.setText(Arrays.toString(distanceArray.get(3)));
-        busStop5TextView.setText(Arrays.toString(distanceArray.get(4)));
+        busStop1TextView.setText(distanceArray.get(0).toString());
+        busStop2TextView.setText(distanceArray.get(1).toString());
+        busStop3TextView.setText(distanceArray.get(2).toString());
+        busStop4TextView.setText(distanceArray.get(3).toString());
+        busStop5TextView.setText(distanceArray.get(4).toString());
 
         closestStop.add(distanceArray.get(0));
         closestStop.add(distanceArray.get(1));
@@ -821,13 +1057,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void sortDistanceArray(ArrayList<String[]> distanceArray) {
+    private void sortDistanceArray(ArrayList<BusStop> distanceArray) {
         // Sort list
-        Collections.sort(distanceArray, new Comparator<String[]>() {
-            public int compare(String[] x, String[] y) {
-                if (parseDouble(x[6]) < parseDouble(y[6])) {
+        Collections.sort(distanceArray, new Comparator<BusStop>() {
+            public int compare(BusStop x, BusStop y) {
+                if (parseDouble(x.getDistance()) < parseDouble(y.getDistance())) {
                     return -1;
-                } else if (parseDouble(x[6]) == parseDouble(y[6])) {
+                } else if (parseDouble(x.getDistance()) == parseDouble(y.getDistance())) {
                     return 0;
                 } else {
                     return 1;
@@ -837,65 +1073,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public static String convertStreamToString(InputStream is) throws Exception {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder sb = new StringBuilder();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append("\n");
-        }
-        reader.close();
-        return sb.toString();
-    }
-
-    /**
-     * Requests location updates from the FusedLocationApi. Note: we don't call this unless location
-     * runtime permission has been granted.
-     */
-    private void startLocationUpdates() {
-        // Begin by checking if the device has the necessary location settings.
-        mSettingsClient.checkLocationSettings(mLocationSettingsRequest)
-                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-                    @Override
-                    public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                        Log.i(TAG, "All location settings are satisfied.");
-
-                        //noinspection MissingPermission
-                        mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                                mLocationCallback, Looper.myLooper());
-
-                        updateUI();
-                    }
-                })
-                .addOnFailureListener(this, new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        int statusCode = ((ApiException) e).getStatusCode();
-                        switch (statusCode) {
-                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                Log.i(TAG, "Location settings are not satisfied. Attempting to upgrade " +
-                                        "location settings ");
-                                try {
-                                    // Show the dialog by calling startResolutionForResult(), and check the
-                                    // result in onActivityResult().
-                                    ResolvableApiException rae = (ResolvableApiException) e;
-                                    rae.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
-                                } catch (IntentSender.SendIntentException sie) {
-                                    Log.i(TAG, "PendingIntent unable to execute request.");
-                                }
-                                break;
-                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                String errorMessage = "Location settings are inadequate, and cannot be " +
-                                        "fixed here. Fix in Settings.";
-                                Log.e(TAG, errorMessage);
-                                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                                mRequestingLocationUpdates = false;
-                        }
-
-                        updateUI();
-                    }
-                });
-    }
 
     /**
      * Updates all UI fields.
@@ -905,91 +1082,6 @@ public class MainActivity extends AppCompatActivity {
         updateLocationUI();
     }
 
-    /**
-     * Disables both buttons when functionality is disabled due to insuffucient location settings.
-     * Otherwise ensures that only one button is enabled at any time. The Start Updates button is
-     * enabled if the user is not requesting location updates. The Stop Updates button is enabled
-     * if the user is requesting location updates.
-     */
-    private void setButtonsEnabledState() {
-        if (mRequestingLocationUpdates) {
-            mStartUpdatesButton.setEnabled(false);
-            mStopUpdatesButton.setEnabled(true);
-        } else {
-            mStartUpdatesButton.setEnabled(true);
-            mStopUpdatesButton.setEnabled(false);
-        }
-    }
-
-    /**
-     * Sets the value of the UI fields for the location latitude, longitude and last update time.
-     */
-    private void updateLocationUI() {
-        if (mCurrentLocation != null) {
-            mLatitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLatitudeLabel,
-                    mCurrentLocation.getLatitude()));
-            mLongitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLongitudeLabel,
-                    mCurrentLocation.getLongitude()));
-            mLastUpdateTimeTextView.setText(String.format(Locale.ENGLISH, "%s: %s",
-                    mLastUpdateTimeLabel, mLastUpdateTime));
-
-
-        }
-    }
-
-    /**
-     * Removes location updates from the FusedLocationApi.
-     */
-    private void stopLocationUpdates() {
-        if (!mRequestingLocationUpdates) {
-            Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
-            return;
-        }
-
-        // It is a good practice to remove location requests when the activity is in a paused or
-        // stopped state. Doing so helps battery performance and is especially
-        // recommended in applications that request frequent location updates.
-        mFusedLocationClient.removeLocationUpdates(mLocationCallback)
-                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        mRequestingLocationUpdates = false;
-                        setButtonsEnabledState();
-                    }
-                });
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-        // location updates if the user has requested them.
-        if (mRequestingLocationUpdates && checkPermissions()) {
-            startLocationUpdates();
-        } else if (!checkPermissions()) {
-            requestPermissions();
-        }
-
-        updateUI();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Remove location updates to save battery.
-        stopLocationUpdates();
-    }
-
-    /**
-     * Stores activity data in the Bundle.
-     */
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
-        savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
-        savedInstanceState.putString(KEY_LAST_UPDATED_TIME_STRING, mLastUpdateTime);
-        super.onSaveInstanceState(savedInstanceState);
-    }
 
     /**
      * Shows a {@link Snackbar}.
@@ -1046,51 +1138,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        Log.i(TAG, "onRequestPermissionResult");
-        if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
-            if (grantResults.length <= 0) {
-                // If user interaction was interrupted, the permission request is cancelled and you
-                // receive empty arrays.
-                Log.i(TAG, "User interaction was cancelled.");
-            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (mRequestingLocationUpdates) {
-                    Log.i(TAG, "Permission granted, updates requested, starting location updates");
-                    startLocationUpdates();
-                }
-            } else {
-                // Permission denied.
-
-                // Notify the user via a SnackBar that they have rejected a core permission for the
-                // app, which makes the Activity useless. In a real app, core permissions would
-                // typically be best requested during a welcome-screen flow.
-
-                // Additionally, it is important to remember that a permission might have been
-                // rejected without asking the user for permission (device policy or "Never ask
-                // again" prompts). Therefore, a user interface affordance is typically implemented
-                // when permissions are denied. Otherwise, your app could appear unresponsive to
-                // touches or interactions which have required permissions.
-                showSnackbar(R.string.permission_denied_explanation,
-                        R.string.settings, new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                // Build intent that displays the App settings screen.
-                                Intent intent = new Intent();
-                                intent.setAction(
-                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                Uri uri = Uri.fromParts("package",
-                                        BuildConfig.APPLICATION_ID, null);
-                                intent.setData(uri);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                            }
-                        });
-            }
-        }
-    }
 }

@@ -171,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
     private TextView progressText;
-    private TextView etaProgressText;
     private TextView busStopJSONTextView;
     private TextView busStop1TextView;
     private TextView busStop2TextView;
@@ -205,9 +204,19 @@ public class MainActivity extends AppCompatActivity {
     long downloadReference;
 
     ProgressBar progressBar;
-    ProgressBar etaProgressBar;
     Timer progressTimer;
     ArrayList<BusStop> closestStop = new ArrayList<BusStop>();
+
+    private TextView etaProgressText1;
+    private ProgressBar etaProgressBar1;
+    private TextView etaProgressText2;
+    private ProgressBar etaProgressBar2;
+    private TextView etaProgressText3;
+    private ProgressBar etaProgressBar3;
+    private TextView etaProgressText4;
+    private ProgressBar etaProgressBar4;
+    private TextView etaProgressText5;
+    private ProgressBar etaProgressBar5;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -224,11 +233,8 @@ public class MainActivity extends AppCompatActivity {
         mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
         mLastUpdateTimeTextView = (TextView) findViewById(R.id.last_update_time_text);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        etaProgressBar = (ProgressBar) findViewById(R.id.etaProgressBar);
-
-
         progressText = (TextView) findViewById(R.id.progressText);
-        etaProgressText = (TextView) findViewById(R.id.etaProgressText);
+
         busStopJSONTextView = (TextView) findViewById(R.id.bus_stop_json);
         busStop1TextView = (TextView) findViewById(R.id.bus_stop_1);
         busStop2TextView = (TextView) findViewById(R.id.bus_stop_2);
@@ -241,6 +247,18 @@ public class MainActivity extends AppCompatActivity {
         eta3TextView = (TextView) findViewById(R.id.eta_3);
         eta4TextView = (TextView) findViewById(R.id.eta_4);
         eta5TextView = (TextView) findViewById(R.id.eta_5);
+
+
+        etaProgressBar1 = (ProgressBar) findViewById(R.id.etaProgressBar1);
+        etaProgressText1 = (TextView) findViewById(R.id.etaProgressText1);
+        etaProgressBar2 = (ProgressBar) findViewById(R.id.etaProgressBar2);
+        etaProgressText2 = (TextView) findViewById(R.id.etaProgressText2);
+        etaProgressBar3 = (ProgressBar) findViewById(R.id.etaProgressBar3);
+        etaProgressText3 = (TextView) findViewById(R.id.etaProgressText3);
+        etaProgressBar4 = (ProgressBar) findViewById(R.id.etaProgressBar4);
+        etaProgressText4 = (TextView) findViewById(R.id.etaProgressText4);
+        etaProgressBar5 = (ProgressBar) findViewById(R.id.etaProgressBar5);
+        etaProgressText5 = (TextView) findViewById(R.id.etaProgressText5);
 
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
@@ -425,7 +443,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public void startDownloadJSONButtonHandler(View view) {
 
         //https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
@@ -440,6 +457,7 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<BusStop> distanceArray = new ArrayList<BusStop>();
         ArrayList<Object> listData = new ArrayList<Object>();
+        closestStop = new ArrayList<BusStop>();
 
 
         convertJsonToArrayList(listData, "busStop.json", busStopJSONTextView);
@@ -450,9 +468,41 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    public void startDownloadEtaJSONButtonHandler(View view) throws Exception {
+        for (int i = 0; i < 5; i++) {
+            TextView dummyTxt = new TextView(MainActivity.this);
+            ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
+
+            BusStop busStop = closestStop.get(i);
+            String stopID = busStop.getStopID();
+
+            System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
+            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", stopID + " ETA_Tmp.json");
+            switch (i) {
+                case 0:
+                    checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+
+                case 1:
+                    checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+
+                case 2:
+                    checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+
+                case 3:
+                    checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+
+                case 4:
+                    checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+
+            }
+        }
+    }
+
+
     public void startReadEtaJSONButtonHandler(View view) throws Exception {
 
-        ArrayList<ArrayList<StopEta>> fiveEtaArray =  new ArrayList<ArrayList<StopEta>>();
+        ArrayList<ArrayList<StopEta>> fiveEtaArray = new ArrayList<ArrayList<StopEta>>();
 
         for (int i = 0; i < 5; i++) {
             ArrayList<Object> listData = new ArrayList<Object>();
@@ -468,21 +518,6 @@ public class MainActivity extends AppCompatActivity {
         outputEtaData(fiveEtaArray);
 
     }
-
-    public void startDownloadEtaJSONButtonHandler(View view) throws Exception {
-        for (int i = 0; i < 5; i++) {
-            TextView dummyTxt = new TextView(MainActivity.this);
-            ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
-
-            BusStop busStop = closestStop.get(i);
-            String stopID = busStop.getStopID();
-
-            System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
-            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", stopID + " ETA_Tmp.json");
-            checkDownloadStatusFunction(etaProgressText, etaProgressBar, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-        }
-    }
-
 
 
     /**
@@ -602,7 +637,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     /**
      * Uses a {@link com.google.android.gms.location.LocationSettingsRequest.Builder} to build
      * a {@link com.google.android.gms.location.LocationSettingsRequest} that is used for checking
@@ -613,7 +647,6 @@ public class MainActivity extends AppCompatActivity {
         builder.addLocationRequest(mLocationRequest);
         mLocationSettingsRequest = builder.build();
     }
-
 
 
     /**
@@ -659,9 +692,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-
     private void downloadJSON(String url, String title, String description, String subPath) {
 
         //System.out.println("download" + url);
@@ -681,6 +711,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         downloadReference = downloadManager.enqueue(request); // enqueue a new download
+
 
     }
 
@@ -810,7 +841,7 @@ public class MainActivity extends AppCompatActivity {
         }, 0, 10);
     }
 
-    private void removeTmpFile( String tmpFileName, String realFileName) {
+    private void removeTmpFile(String tmpFileName, String realFileName) {
 
         File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
 
@@ -904,10 +935,8 @@ public class MainActivity extends AppCompatActivity {
             Object array = listData.get(i);
 
 
-
             BusStop busStop = new BusStop();
             String[] tmpArray = new String[7];
-
 
 
             //System.out.println(array.toString());
@@ -1002,14 +1031,14 @@ public class MainActivity extends AppCompatActivity {
         String eta5 = "";
         String tmpString = "";
 
-        for(int j = 0; j<5; j++) {
+        for (int j = 0; j < 5; j++) {
             tmpString = "";
             for (int i = 0; i < fiveEtaArray.get(j).size(); i++) {
                 StopEta stopEta = fiveEtaArray.get(j).get(i);
                 tmpString += stopEta.toString();
                 tmpString += "\n";
             }
-            switch(j){
+            switch (j) {
                 case 0:
                     eta1 = tmpString;
                 case 1:
@@ -1071,7 +1100,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
 
 
     /**

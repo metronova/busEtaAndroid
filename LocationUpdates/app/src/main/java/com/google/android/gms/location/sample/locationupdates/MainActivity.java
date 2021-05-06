@@ -17,6 +17,7 @@
 package com.google.android.gms.location.sample.locationupdates;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
@@ -482,19 +483,19 @@ public class MainActivity extends AppCompatActivity {
             switch (i) {
                 case 0:
                     checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-
+                    break;
                 case 1:
                     checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-
+                    break;
                 case 2:
                     checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-
+                    break;
                 case 3:
                     checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-
+                    break;
                 case 4:
                     checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, stopID + " ETA_Tmp.json", stopID + " ETA.json");
-
+                    break;
             }
         }
     }
@@ -803,6 +804,7 @@ public class MainActivity extends AppCompatActivity {
         //System.out.println(tmpFileName);
         //System.out.println(realFileName);
         // update progressbar
+        System.out.println("xx" + downloadReference);
         progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
             @Override
@@ -826,6 +828,7 @@ public class MainActivity extends AppCompatActivity {
                     final float downloadProgress = downloadedBytes * 100f / totalBytes;
                     if (downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
                         progressTimer.cancel();
+
 
                     runOnUiThread(new Runnable() {
                         @Override

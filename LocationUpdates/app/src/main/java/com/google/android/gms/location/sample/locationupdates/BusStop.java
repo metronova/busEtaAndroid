@@ -1,5 +1,7 @@
 package com.google.android.gms.location.sample.locationupdates;
 
+import static java.lang.Math.round;
+
 public class BusStop {
 
     String stopID;
@@ -78,9 +80,13 @@ public class BusStop {
                 ", lon='" + lon + '\'' +
                 ", distance='" + distance + '\'' +
                 '}';*/
-         return "nameTc='" + nameTc + "'," +
+         /*return "nameTc='" + nameTc + "'," +
                  "\n" +
-                "distance='" + distance  + "'" ;
+                "distance='" + distance  + "'" ;*/
+
+        double distanceMeter = Double.valueOf(distance)*111.139*1000;
+
+         return nameTc + " " + round(distanceMeter)+"m";
     }
 
 }

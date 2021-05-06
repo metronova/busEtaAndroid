@@ -1,5 +1,9 @@
 package com.google.android.gms.location.sample.locationupdates;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class StopEta {
 
     String co;
@@ -16,6 +20,7 @@ public class StopEta {
     String rmkSc;
     String rmkEn;
     String dataTimestamp;
+    String etaTimeLeft;
 
     public String getCo() {
         return co;
@@ -129,6 +134,25 @@ public class StopEta {
         this.dataTimestamp = dataTimestamp;
     }
 
+    public String getEtaTimeLeft() throws ParseException {
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        Date etaDate = dateFormat.parse(this.eta);
+        Date currentTime = new Date();
+
+        Date timeLeft = new Date(etaDate.getTime() - currentTime.getTime());
+
+        System.out.println(timeLeft.toString());
+
+        etaTimeLeft = String.valueOf(timeLeft.getMinutes());
+
+        return etaTimeLeft;
+    }
+
+    public void setEtaTimeLeft(String etaTimeLeft) {
+        this.etaTimeLeft = etaTimeLeft;
+    }
+
     @Override
     public String toString() {
        /* return "StopEta{" +
@@ -147,11 +171,28 @@ public class StopEta {
                 ", rmkEn='" + rmkEn + '\'' +
                 ", dataTimestamp='" + dataTimestamp + '\'' +
                 '}';*/
+        String etaLeft = null;
+        try {
+            etaLeft = this.getEtaTimeLeft();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Date etaDate = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        try {
+            etaDate = dateFormat.parse(this.eta);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-        return "route='" + route + "'," +
-                "\n" +
-                "descTc='" + destTc + "'," +
-                "\n" +
-                "eta='" + eta + "'";
+        String etaTime = etaDate.getHours() + ":" + etaDate.getMinutes();
+
+        /*return "route='" + route + "', " +
+                //"\n" +
+                "descTc='" + destTc + "', " +
+                //"\n" +
+                "eta='" + etaLeft + "'";*/
+
+        return route + " " + destTc + " " + etaTime + " " + etaLeft+"min(s)" ;
     }
 }

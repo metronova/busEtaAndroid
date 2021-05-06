@@ -893,13 +893,14 @@ public class MainActivity extends AppCompatActivity {
         //Make sure you close all streams.
         fileStream.close();
 
-        String showInTextView = JSONString.substring(0, 100);
-        showTextView.setText(showInTextView);
+
 
         JSONObject result = new JSONObject(JSONString);
 
         JSONArray jsonArray = result.getJSONArray("data");
+        String showInTextView = result.getString("generated_timestamp");
 
+        showTextView.setText(showInTextView);
 
         //Checking whether the JSON array has some value or not
         if (jsonArray != null) {

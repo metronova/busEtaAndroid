@@ -885,7 +885,6 @@ public class MainActivity extends AppCompatActivity {
         File file = new File(filePath, filename);
 
 
-
         FileInputStream fileStream = new FileInputStream(file);
 
 
@@ -894,13 +893,15 @@ public class MainActivity extends AppCompatActivity {
         fileStream.close();
 
 
-
         JSONObject result = new JSONObject(JSONString);
 
-        JSONArray jsonArray = result.getJSONArray("data");
-        String showInTextView = result.getString("generated_timestamp");
 
-        showTextView.setText(showInTextView);
+        JSONArray jsonArray = result.getJSONArray("data");
+        String timeStamp = result.getString("generated_timestamp");
+
+        String dateTimeString = DateUtil.returnDatetimeString(timeStamp);
+        showTextView.setText(dateTimeString);
+
 
         //Checking whether the JSON array has some value or not
         if (jsonArray != null) {
@@ -1002,23 +1003,42 @@ public class MainActivity extends AppCompatActivity {
         String tmpString = "";
 
         for (int j = 0; j < 5; j++) {
+
+            BusStop busStop = closestStop.get(j);
             tmpString = "";
+
             for (int i = 0; i < fiveEtaArray.get(j).size(); i++) {
                 StopEta stopEta = fiveEtaArray.get(j).get(i);
                 tmpString += stopEta.toString();
                 tmpString += "\n";
             }
+
             switch (j) {
                 case 0:
-                    eta1 = tmpString;
+                    eta1 = busStop.getNameTc();
+                    eta1 += "\n";
+                    eta1 += tmpString;
+                    break;
                 case 1:
-                    eta2 = tmpString;
+                    eta2 = busStop.getNameTc();
+                    eta2 += "\n";
+                    eta2 += tmpString;
+                    break;
                 case 2:
-                    eta3 = tmpString;
+                    eta3 = busStop.getNameTc();
+                    eta3 += "\n";
+                    eta3 += tmpString;
+                    break;
                 case 3:
-                    eta4 = tmpString;
+                    eta4 = busStop.getNameTc();
+                    eta4 += "\n";
+                    eta4 += tmpString;
+                    break;
                 case 4:
-                    eta5 = tmpString;
+                    eta5 = busStop.getNameTc();
+                    eta5 += "\n";
+                    eta5 += tmpString;
+                    break;
             }
         }
         eta1TextView.setText(eta1);

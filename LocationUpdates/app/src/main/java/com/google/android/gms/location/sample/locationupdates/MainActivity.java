@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
     long downloadReference;
 
     ProgressBar progressBar;
-    Timer progressTimer;
+    //Timer progressTimer;
     ArrayList<BusStop> closestStop = new ArrayList<BusStop>();
 
     private TextView etaProgressText1;
@@ -695,8 +695,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void downloadJSON(String url, String title, String description, String subPath) {
 
-        //System.out.println("download" + url);
-
         downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         Uri uri = Uri.parse(url); // Path where you want to download file.
@@ -801,23 +799,23 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void checkDownloadStatusFunction(final TextView progressText, final ProgressBar progressBar, final String tmpFileName, final String realFileName) {
-        //System.out.println(tmpFileName);
-        //System.out.println(realFileName);
+
         // update progressbar
-        System.out.println("xx" + downloadReference);
-        progressTimer = new Timer();
+        final long downloadReferenceInUse = downloadReference;
+
+        final Timer progressTimer = new Timer();
         progressTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-
                 DownloadManager.Query downloadQuery = new DownloadManager.Query();
-                downloadQuery.setFilterById(downloadReference);
+                downloadQuery.setFilterById(downloadReferenceInUse);
 
                 final Cursor cursor = downloadManager.query(downloadQuery);
 
                 if (cursor.moveToFirst()) { // this "if" is crucial to prevent a kind of error
                     final int downloadedBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                     final int totalBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)); // integer is enough for files under 2GB
+
 
                     int downloadStatus = DownloadStatus(cursor);
                     removeTmpFile(tmpFileName, realFileName);
@@ -826,8 +824,10 @@ public class MainActivity extends AppCompatActivity {
                     cursor.close();
 
                     final float downloadProgress = downloadedBytes * 100f / totalBytes;
-                    if (downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
+                    //if (downloadProgress > 99.9) // stop repeating timer (it's also useful for error prevention)
+                    if (downloadStatus == DownloadManager.STATUS_SUCCESSFUL) { // stop repeating timer (it's also useful for error prevention)
                         progressTimer.cancel();
+                    }
 
 
                     runOnUiThread(new Runnable() {
@@ -878,20 +878,13 @@ public class MainActivity extends AppCompatActivity {
     //////////////////////////////////////////////////////////
 
     private void convertJsonToArrayList(ArrayList<Object> listData, String filename, TextView showTextView) throws Exception {
-
-
         //https://stackoverflow.com/questions/31670076/android-download-and-store-json-so-app-can-work-offline
 
-        //File path = Environment.getExternalStoragePublicDirectory(
-        //       Environment.DIRECTORY_DOWNLOADS);
-        //File file = new File(path, "busStop.json");
 
         File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-        //System.out.println(yourFilePath);
-        //File yourFile = new File(yourFilePath);
         File file = new File(filePath, filename);
 
-        //System.out.println(yourFile.exists());
+
 
         FileInputStream fileStream = new FileInputStream(file);
 
@@ -905,7 +898,6 @@ public class MainActivity extends AppCompatActivity {
 
         JSONObject result = new JSONObject(JSONString);
 
-        //System.out.println(result.get("type"));
         JSONArray jsonArray = result.getJSONArray("data");
 
 
@@ -941,9 +933,6 @@ public class MainActivity extends AppCompatActivity {
             BusStop busStop = new BusStop();
             String[] tmpArray = new String[7];
 
-
-            //System.out.println(array.toString());
-
             JSONObject result2 = new JSONObject(array.toString());
 
             double stopLat = Float.parseFloat(result2.get("lat").toString());
@@ -957,16 +946,7 @@ public class MainActivity extends AppCompatActivity {
 
             distance = Math.sqrt(Math.pow(latDiff, 2) + Math.pow(lonDiff, 2));
 
-            /*System.out.println(" ");
-            System.out.println(result2.get("name_tc").toString());
-            System.out.println("distance " + distance);
-            System.out.println("latDiff" + " " + latDiff);
-            System.out.println("lonDiff" + " " + lonDiff);
-            System.out.println("Stop location" + " " + stopLat + " " + stopLon);
-            System.out.println("current location" + " " + lat + " " + lon);*/
-
             result2.accumulate("distance", distance);
-            //System.out.println(result2.toString());
 
             busStop.setStopID(result2.get("stop").toString());
             busStop.setNameEn(result2.get("name_en").toString());
@@ -987,11 +967,8 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < listData.size(); i++) {
             Object array = listData.get(i);
             StopEta stopEta = new StopEta();
-            //System.out.println(array.toString());
 
             JSONObject result2 = new JSONObject(array.toString());
-
-            //System.out.println(result2.toString());
 
             stopEta.setCo(result2.get("co").toString());
             stopEta.setRoute(result2.get("route").toString());
@@ -1015,17 +992,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void outputEtaData(ArrayList<ArrayList<StopEta>> fiveEtaArray) {
-
-        // Output list
-        /*for(String[] strs : distanceArray) {
-            System.out.println(Arrays.toString(strs));
-        }*/
-
-        /*System.out.println(Arrays.toString(distanceArray.get(0)));
-        System.out.println(Arrays.toString(distanceArray.get(1)));
-        System.out.println(Arrays.toString(distanceArray.get(2)));
-        System.out.println(Arrays.toString(distanceArray.get(3)));
-        System.out.println(Arrays.toString(distanceArray.get(4)));*/
 
         String eta1 = "";
         String eta2 = "";
@@ -1063,17 +1029,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void outputDistanceData(ArrayList<BusStop> distanceArray, ArrayList<BusStop> closestStop) {
-
-        // Output list
-        /*for(String[] strs : distanceArray) {
-            System.out.println(Arrays.toString(strs));
-        }*/
-
-        /*System.out.println(Arrays.toString(distanceArray.get(0)));
-        System.out.println(Arrays.toString(distanceArray.get(1)));
-        System.out.println(Arrays.toString(distanceArray.get(2)));
-        System.out.println(Arrays.toString(distanceArray.get(3)));
-        System.out.println(Arrays.toString(distanceArray.get(4)));*/
 
         busStop1TextView.setText(distanceArray.get(0).toString());
         busStop2TextView.setText(distanceArray.get(1).toString());

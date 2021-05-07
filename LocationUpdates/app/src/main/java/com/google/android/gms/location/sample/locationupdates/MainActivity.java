@@ -815,7 +815,7 @@ public class MainActivity extends AppCompatActivity {
                 if (cursor.moveToFirst()) { // this "if" is crucial to prevent a kind of error
                     final int downloadedBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                     final int totalBytes = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)); // integer is enough for files under 2GB
-
+                    final String downloadPath = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_URI));
 
                     int downloadStatus = DownloadStatus(cursor);
                     removeTmpFile(tmpFileName, realFileName);
@@ -833,7 +833,7 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            progressText.setText(downloadedBytes + " bytes\n" + totalBytes + " bytes\n" + downloadProgress + "%");
+                            progressText.setText(downloadPath + "\n" + downloadedBytes + " bytes\n" + totalBytes + " bytes\n" + downloadProgress + "%");
                             progressBar.setProgress((int) downloadProgress);
                         }
                     });
@@ -1015,7 +1015,7 @@ public class MainActivity extends AppCompatActivity {
 
             switch (j) {
                 case 0:
-                    eta1 = busStop.getNameTc();
+                    eta1 += busStop.getNameTc();
                     eta1 += "\n";
                     eta1 += tmpString;
                     break;

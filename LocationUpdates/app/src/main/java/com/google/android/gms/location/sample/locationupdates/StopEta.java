@@ -177,15 +177,8 @@ public class StopEta {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        Date etaDate = new Date();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-        try {
-            etaDate = dateFormat.parse(this.eta);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
 
-        String etaTime = etaDate.getHours() + ":" + etaDate.getMinutes();
+        String etaTime = DateUtil.returnDatetimeString(this.eta);
 
         /*return "route='" + route + "', " +
                 //"\n" +

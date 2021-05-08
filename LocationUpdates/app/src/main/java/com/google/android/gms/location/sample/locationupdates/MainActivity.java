@@ -71,6 +71,7 @@ import org.w3c.dom.Text;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
@@ -484,8 +485,10 @@ public class MainActivity extends AppCompatActivity {
             createDistanceArray(distanceArray, listData);
             sortDistanceArray(distanceArray);
             outputDistanceData(distanceArray, closestStop);
+        } catch (FileNotFoundException e) {
+            busStop1TextView.setText("Bus stop json not found");
         } catch (Throwable e) {
-            System.out.println(e.toString());
+            busStop1TextView.setText(e.toString());
         }
 
 
@@ -521,8 +524,11 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
 
-            } catch (Throwable e) {
-                System.out.println(e.toString());
+            } catch(IndexOutOfBoundsException e){
+                etaProgressText1.setText("Closest stop data not found");
+            }
+            catch (Throwable e) {
+                etaProgressText1.setText(e.toString());
             }
         }
     }
@@ -543,8 +549,10 @@ public class MainActivity extends AppCompatActivity {
                 convertJsonToArrayList(listData, STOP_ETA_JSON_FILE_NAME + stopID, stopEtaJSONTextView);
                 createEtaArray(oneEtaArray, listData);
                 fiveEtaArray.add(oneEtaArray);
-            } catch (Throwable e) {
-                System.out.println(e.toString());
+            } catch(IndexOutOfBoundsException e){
+                eta1TextView.setText("Closest stop data not found");
+            }catch (Throwable e) {
+                eta1TextView.setText((e.toString()));
             }
 
 
@@ -552,7 +560,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             outputEtaData(fiveEtaArray);
         } catch (Throwable e) {
-            System.out.println(e.toString());
+            eta1TextView.setText((e.toString()));
         }
 
     }

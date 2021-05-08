@@ -142,7 +142,7 @@ public class StopEta {
 
         Date timeLeft = new Date(etaDate.getTime() - currentTime.getTime());
 
-        System.out.println(timeLeft.toString());
+        //System.out.println(timeLeft.toString());
 
         etaTimeLeft = String.valueOf(timeLeft.getMinutes());
 

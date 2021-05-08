@@ -452,9 +452,9 @@ public class MainActivity extends AppCompatActivity {
 
             if (dir.delete()) {
                 deleteTextView.setText("Stop ETA JSON deleted.");
-            } 
+            }
 
-        }else{
+        } else {
             deleteTextView.setText("Stop ETA JSON not found.");
         }
 
@@ -478,10 +478,15 @@ public class MainActivity extends AppCompatActivity {
         closestStop = new ArrayList<BusStop>();
 
 
-        convertJsonToArrayList(listData, BUS_STOP_JSON_FILE_NAME, busStopJSONTextView);
-        createDistanceArray(distanceArray, listData);
-        sortDistanceArray(distanceArray);
-        outputDistanceData(distanceArray, closestStop);
+        try {
+
+            convertJsonToArrayList(listData, BUS_STOP_JSON_FILE_NAME, busStopJSONTextView);
+            createDistanceArray(distanceArray, listData);
+            sortDistanceArray(distanceArray);
+            outputDistanceData(distanceArray, closestStop);
+        } catch (Throwable e) {
+            System.out.println(e.toString());
+        }
 
 
     }
@@ -491,28 +496,33 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 5; i++) {
             TextView dummyTxt = new TextView(MainActivity.this);
             ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
+            try {
+                BusStop busStop = closestStop.get(i);
 
-            BusStop busStop = closestStop.get(i);
-            String stopID = busStop.getStopID();
+                String stopID = busStop.getStopID();
 
-            System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
-            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", STOP_ETA_JSON_FILE_TMP_NAME + stopID);
-            switch (i) {
-                case 0:
-                    checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                    break;
-                case 1:
-                    checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                    break;
-                case 2:
-                    checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                    break;
-                case 3:
-                    checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                    break;
-                case 4:
-                    checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                    break;
+                //System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
+                downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", STOP_ETA_JSON_FILE_TMP_NAME + stopID);
+                switch (i) {
+                    case 0:
+                        checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
+                        break;
+                    case 1:
+                        checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
+                        break;
+                    case 2:
+                        checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
+                        break;
+                    case 3:
+                        checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
+                        break;
+                    case 4:
+                        checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
+                        break;
+                }
+
+            } catch (Throwable e) {
+                System.out.println(e.toString());
             }
         }
     }
@@ -526,14 +536,24 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<Object> listData = new ArrayList<Object>();
             ArrayList<StopEta> oneEtaArray = new ArrayList<StopEta>();
 
-            BusStop busStop = closestStop.get(i);
-            String stopID = busStop.getStopID();
-            convertJsonToArrayList(listData, STOP_ETA_JSON_FILE_NAME + stopID, stopEtaJSONTextView);
-            createEtaArray(oneEtaArray, listData);
-            fiveEtaArray.add(oneEtaArray);
-        }
+            try {
 
-        outputEtaData(fiveEtaArray);
+                BusStop busStop = closestStop.get(i);
+                String stopID = busStop.getStopID();
+                convertJsonToArrayList(listData, STOP_ETA_JSON_FILE_NAME + stopID, stopEtaJSONTextView);
+                createEtaArray(oneEtaArray, listData);
+                fiveEtaArray.add(oneEtaArray);
+            } catch (Throwable e) {
+                System.out.println(e.toString());
+            }
+
+
+        }
+        try {
+            outputEtaData(fiveEtaArray);
+        } catch (Throwable e) {
+            System.out.println(e.toString());
+        }
 
     }
 

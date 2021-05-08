@@ -134,6 +134,14 @@ public class MainActivity extends AppCompatActivity {
     private final static String BUS_STOP_JSON_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop";
     private final static String BUS_STOP_ETA_JSON_URL = "https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/";
 
+    private final static String BUS_STOP_JSON_FILE_NAME = "stop/busStop";
+    private final static String BUS_STOP_JSON_FILE_TMP_NAME = "stop/busStop_Tmp";
+
+    private final static String STOP_ETA_JSON_FILE_NAME = "eta/ETA_";
+    private final static String STOP_ETA_JSON_FILE_TMP_NAME = "eta/ETA_Tmp_";
+    private final static String STOP_ETA_JSON_FOLDER_NAME = "eta";
+    private final static String JSON_SUFFIX = ".json";
+
     /**
      * Provides access to the Fused Location Provider API.
      */
@@ -184,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView eta3TextView;
     private TextView eta4TextView;
     private TextView eta5TextView;
+    private TextView deleteTextView;
 
     // Labels.
     private String mLatitudeLabel;
@@ -248,6 +257,7 @@ public class MainActivity extends AppCompatActivity {
         eta3TextView = (TextView) findViewById(R.id.eta_3);
         eta4TextView = (TextView) findViewById(R.id.eta_4);
         eta5TextView = (TextView) findViewById(R.id.eta_5);
+        deleteTextView = (TextView) findViewById(R.id.delete_text);
 
 
         etaProgressBar1 = (ProgressBar) findViewById(R.id.etaProgressBar1);
@@ -413,42 +423,49 @@ public class MainActivity extends AppCompatActivity {
         stopLocationUpdates();
     }
 
-    /**
-     * Updates fields based on data stored in the bundle.
-     *
-     * @param savedInstanceState The activity state saved in the Bundle.
-     */
-    private void updateValuesFromBundle(Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
-            // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
-            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
-                mRequestingLocationUpdates = savedInstanceState.getBoolean(
-                        KEY_REQUESTING_LOCATION_UPDATES);
-            }
+    public void deleteBusStopJsonButtonHandler(View view) {
 
-            // Update the value of mCurrentLocation from the Bundle and update the UI to show the
-            // correct latitude and longitude.
-            if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
-                // Since KEY_LOCATION was found in the Bundle, we can be sure that mCurrentLocation
-                // is not null.
-                mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-            }
+        File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
 
-            // Update the value of mLastUpdateTime from the Bundle and update the UI.
-            if (savedInstanceState.keySet().contains(KEY_LAST_UPDATED_TIME_STRING)) {
-                mLastUpdateTime = savedInstanceState.getString(KEY_LAST_UPDATED_TIME_STRING);
-            }
-            updateUI();
+        File file = new File(filePath, BUS_STOP_JSON_FILE_NAME);
+
+        if (file.exists()) {
+            file.delete();
+            deleteTextView.setText("Bus Stop JSON deleted.");
+        } else {
+            deleteTextView.setText("Bus Stop JSON not found.");
         }
+
+
     }
 
+    public void deleteStopEtaJsonButtonHandler(View view) {
+
+        File filePath = MainActivity.this.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+
+        File dir = new File(filePath, STOP_ETA_JSON_FOLDER_NAME);
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                new File(dir, children[i]).delete();
+            }
+
+            if (dir.delete()) {
+                deleteTextView.setText("Stop ETA JSON deleted.");
+            } 
+
+        }else{
+            deleteTextView.setText("Stop ETA JSON not found.");
+        }
+
+
+    }
 
     public void startDownloadJSONButtonHandler(View view) {
 
         //https://stackoverflow.com/questions/15542641/how-to-show-download-progress-in-progress-bar-in-android
-        downloadJSON(BUS_STOP_JSON_URL, "Bus Stop Data", "Bus Stop Data", "busStopTmp.json");
-        checkDownloadStatusFunction(progressText, progressBar, "busStopTmp.json", "busStop.json");
+        downloadJSON(BUS_STOP_JSON_URL, "Bus Stop Data", "Bus Stop Data", BUS_STOP_JSON_FILE_NAME);
+        checkDownloadStatusFunction(progressText, progressBar, BUS_STOP_JSON_FILE_TMP_NAME, BUS_STOP_JSON_FILE_NAME);
 
 
     }
@@ -461,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
         closestStop = new ArrayList<BusStop>();
 
 
-        convertJsonToArrayList(listData, "busStop.json", busStopJSONTextView);
+        convertJsonToArrayList(listData, BUS_STOP_JSON_FILE_NAME, busStopJSONTextView);
         createDistanceArray(distanceArray, listData);
         sortDistanceArray(distanceArray);
         outputDistanceData(distanceArray, closestStop);
@@ -479,22 +496,22 @@ public class MainActivity extends AppCompatActivity {
             String stopID = busStop.getStopID();
 
             System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
-            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", stopID + " ETA_Tmp.json");
+            downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", STOP_ETA_JSON_FILE_TMP_NAME + stopID);
             switch (i) {
                 case 0:
-                    checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+                    checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
                     break;
                 case 1:
-                    checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+                    checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
                     break;
                 case 2:
-                    checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+                    checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
                     break;
                 case 3:
-                    checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+                    checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
                     break;
                 case 4:
-                    checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, stopID + " ETA_Tmp.json", stopID + " ETA.json");
+                    checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
                     break;
             }
         }
@@ -511,7 +528,7 @@ public class MainActivity extends AppCompatActivity {
 
             BusStop busStop = closestStop.get(i);
             String stopID = busStop.getStopID();
-            convertJsonToArrayList(listData, stopID + " ETA.json", stopEtaJSONTextView);
+            convertJsonToArrayList(listData, STOP_ETA_JSON_FILE_NAME + stopID, stopEtaJSONTextView);
             createEtaArray(oneEtaArray, listData);
             fiveEtaArray.add(oneEtaArray);
         }
@@ -1080,6 +1097,35 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Updates fields based on data stored in the bundle.
+     *
+     * @param savedInstanceState The activity state saved in the Bundle.
+     */
+    private void updateValuesFromBundle(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
+            // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
+            if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
+                mRequestingLocationUpdates = savedInstanceState.getBoolean(
+                        KEY_REQUESTING_LOCATION_UPDATES);
+            }
+
+            // Update the value of mCurrentLocation from the Bundle and update the UI to show the
+            // correct latitude and longitude.
+            if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
+                // Since KEY_LOCATION was found in the Bundle, we can be sure that mCurrentLocation
+                // is not null.
+                mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+            }
+
+            // Update the value of mLastUpdateTime from the Bundle and update the UI.
+            if (savedInstanceState.keySet().contains(KEY_LAST_UPDATED_TIME_STRING)) {
+                mLastUpdateTime = savedInstanceState.getString(KEY_LAST_UPDATED_TIME_STRING);
+            }
+            updateUI();
+        }
+    }
 
     /**
      * Updates all UI fields.

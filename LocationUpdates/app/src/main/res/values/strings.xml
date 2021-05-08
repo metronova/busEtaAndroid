@@ -27,6 +27,8 @@
     <string name="read_stop_list_json">Read Stop List JSON</string>
     <string name="download_eta_json">Download ETA JSON</string>
     <string name="read_eta_json">read ETA JSON</string>
+    <string name="delete_bus_stop_json">Delete Bus Stop JSON</string>
+    <string name="delete_stop_eta_json">Delete Stop ETA JSON</string>
 
     <string name="location_settings_inadequate_warning">The location settings on the device are not
         adequate to run this sample. Fix in Settings.</string>

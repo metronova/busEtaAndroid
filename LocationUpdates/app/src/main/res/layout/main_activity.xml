@@ -120,6 +120,40 @@
                 android:orientation="horizontal">
 
                 <Button
+                    android:id="@+id/delete_bus_stop_json_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:onClick="deleteBusStopJsonButtonHandler"
+                    android:text="@string/delete_bus_stop_json" />
+
+                <Button
+                    android:id="@+id/delete_stop_eta_json_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:onClick="deleteStopEtaJsonButtonHandler"
+                    android:text="@string/delete_stop_eta_json" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/delete_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <Button
                     android:id="@+id/download_json_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"

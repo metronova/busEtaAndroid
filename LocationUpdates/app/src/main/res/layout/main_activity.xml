@@ -43,6 +43,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
+            android:id="@+id/linear_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -205,45 +206,15 @@
                 android:layout_marginLeft="@dimen/small_margin"
                 android:textSize="@dimen/default_text_size" />
 
-            <TextView
-                android:id="@+id/bus_stop_1"
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:id="@+id/bus_stop_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/bus_stop_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
 
-            <TextView
-                android:id="@+id/bus_stop_3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
-
-            <TextView
-                android:id="@+id/bus_stop_4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
-
-            <TextView
-                android:id="@+id/bus_stop_5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
+            </RelativeLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -264,65 +235,15 @@
 
             </LinearLayout>
 
-            <ProgressBar
-                android:id="@+id/etaProgressBar1"
-                style="?android:attr/progressBarStyleHorizontal"
+            <RelativeLayout
+                android:id="@+id/eta_progress_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/etaProgressText1"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/progressBar" />
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
-            <ProgressBar
-                android:id="@+id/etaProgressBar2"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/etaProgressText2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/progressBar" />
-
-            <ProgressBar
-                android:id="@+id/etaProgressBar3"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/etaProgressText3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/progressBar" />
-
-            <ProgressBar
-                android:id="@+id/etaProgressBar4"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/etaProgressText4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/progressBar" />
-
-            <ProgressBar
-                android:id="@+id/etaProgressBar5"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/etaProgressText5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/progressBar" />
+            </RelativeLayout>
 
 
             <LinearLayout
@@ -345,54 +266,19 @@
             </LinearLayout>
 
             <TextView
-                android:id="@+id/stop_eta_json"
-                android:layout_width="wrap_content"
+                android:id="@+id/stop_eta_update_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <RelativeLayout
+                android:id="@+id/eta_data_layout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
 
-
-            <TextView
-                android:id="@+id/eta_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
-
-            <TextView
-                android:id="@+id/eta_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
-
-            <TextView
-                android:id="@+id/eta_3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
-
-            <TextView
-                android:id="@+id/eta_4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
-
-            <TextView
-                android:id="@+id/eta_5"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/small_margin"
-                android:layout_marginLeft="@dimen/small_margin"
-                android:textSize="@dimen/default_text_size" />
+            </RelativeLayout>
 
         </LinearLayout>
 

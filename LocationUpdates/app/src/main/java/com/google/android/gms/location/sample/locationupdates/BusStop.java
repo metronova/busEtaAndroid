@@ -84,9 +84,9 @@ public class BusStop {
                  "\n" +
                 "distance='" + distance  + "'" ;*/
 
-        double distanceMeter = Double.valueOf(distance)*111.139*1000;
+        double distanceMeter = Double.valueOf(distance) * 111.139 * 1000;
 
-         return nameTc + " " + round(distanceMeter)+"m";
+        return nameTc + " " + round(distanceMeter) + "m";
     }
 
 }

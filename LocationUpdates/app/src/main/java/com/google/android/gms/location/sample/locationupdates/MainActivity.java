@@ -41,9 +41,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -143,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
     private final static String STOP_ETA_JSON_FOLDER_NAME = "eta";
     private final static String JSON_SUFFIX = ".json";
 
+    private final static int closestStopCount = 20;
+
     /**
      * Provides access to the Fused Location Provider API.
      */
@@ -218,16 +224,11 @@ public class MainActivity extends AppCompatActivity {
     //Timer progressTimer;
     ArrayList<BusStop> closestStop = new ArrayList<BusStop>();
 
-    private TextView etaProgressText1;
-    private ProgressBar etaProgressBar1;
-    private TextView etaProgressText2;
-    private ProgressBar etaProgressBar2;
-    private TextView etaProgressText3;
-    private ProgressBar etaProgressBar3;
-    private TextView etaProgressText4;
-    private ProgressBar etaProgressBar4;
-    private TextView etaProgressText5;
-    private ProgressBar etaProgressBar5;
+
+    LinearLayout linearLayout;
+    RelativeLayout etaProgressLayout;
+    RelativeLayout etaDataLayout;
+    RelativeLayout busStopLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -247,30 +248,14 @@ public class MainActivity extends AppCompatActivity {
         progressText = (TextView) findViewById(R.id.progressText);
 
         busStopJSONTextView = (TextView) findViewById(R.id.bus_stop_json);
-        busStop1TextView = (TextView) findViewById(R.id.bus_stop_1);
-        busStop2TextView = (TextView) findViewById(R.id.bus_stop_2);
-        busStop3TextView = (TextView) findViewById(R.id.bus_stop_3);
-        busStop4TextView = (TextView) findViewById(R.id.bus_stop_4);
-        busStop5TextView = (TextView) findViewById(R.id.bus_stop_5);
-        stopEtaJSONTextView = (TextView) findViewById(R.id.stop_eta_json);
-        eta1TextView = (TextView) findViewById(R.id.eta_1);
-        eta2TextView = (TextView) findViewById(R.id.eta_2);
-        eta3TextView = (TextView) findViewById(R.id.eta_3);
-        eta4TextView = (TextView) findViewById(R.id.eta_4);
-        eta5TextView = (TextView) findViewById(R.id.eta_5);
+        stopEtaJSONTextView = (TextView) findViewById(R.id.stop_eta_update_time);
         deleteTextView = (TextView) findViewById(R.id.delete_text);
 
 
-        etaProgressBar1 = (ProgressBar) findViewById(R.id.etaProgressBar1);
-        etaProgressText1 = (TextView) findViewById(R.id.etaProgressText1);
-        etaProgressBar2 = (ProgressBar) findViewById(R.id.etaProgressBar2);
-        etaProgressText2 = (TextView) findViewById(R.id.etaProgressText2);
-        etaProgressBar3 = (ProgressBar) findViewById(R.id.etaProgressBar3);
-        etaProgressText3 = (TextView) findViewById(R.id.etaProgressText3);
-        etaProgressBar4 = (ProgressBar) findViewById(R.id.etaProgressBar4);
-        etaProgressText4 = (TextView) findViewById(R.id.etaProgressText4);
-        etaProgressBar5 = (ProgressBar) findViewById(R.id.etaProgressBar5);
-        etaProgressText5 = (TextView) findViewById(R.id.etaProgressText5);
+        linearLayout = (LinearLayout) findViewById(R.id.linear_layout);
+        etaProgressLayout = (RelativeLayout) findViewById(R.id.eta_progress_layout);
+        etaDataLayout = (RelativeLayout) findViewById(R.id.eta_data_layout);
+        busStopLayout = (RelativeLayout) findViewById(R.id.bus_stop_layout);
 
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
@@ -486,9 +471,11 @@ public class MainActivity extends AppCompatActivity {
             sortDistanceArray(distanceArray);
             outputDistanceData(distanceArray, closestStop);
         } catch (FileNotFoundException e) {
-            busStop1TextView.setText("Bus stop json not found");
+            //busStop1TextView.setText("Bus stop json not found");
+            System.out.println("Bus stop json not found");
         } catch (Throwable e) {
-            busStop1TextView.setText(e.toString());
+            //busStop1TextView.setText(e.toString());
+            System.out.println(e.toString());
         }
 
 
@@ -496,9 +483,36 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void startDownloadEtaJSONButtonHandler(View view) throws Exception {
-        for (int i = 0; i < 5; i++) {
-            TextView dummyTxt = new TextView(MainActivity.this);
+
+        //vvvvvvvvvvvvvvvv show download progress text field
+        ArrayList<TextView> progressTextArray = new ArrayList<TextView>();
+        ArrayList<ProgressBar> progressBarArray = new ArrayList<ProgressBar>();
+
+        etaProgressLayout.removeAllViews();
+
+        int j = 0;
+        for (int i = 0; i < closestStop.size(); i++) {
             ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
+            j += 1;
+            dummyProgressBar.setId(j);
+
+            TextView dummyTxt = new TextView(MainActivity.this);
+            j += 1;
+            dummyTxt.setId(j);
+
+            RelativeLayout.LayoutParams paramBar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            paramBar.addRule(RelativeLayout.BELOW, j-2);
+            etaProgressLayout.addView(dummyProgressBar, paramBar);
+
+            RelativeLayout.LayoutParams paramText = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            paramText.addRule(RelativeLayout.BELOW, j-1);
+            etaProgressLayout.addView(dummyTxt, paramText);
+
+            //^^^^^^^^^^^^^^^^^^^^^show download progress text field
+
+
+            //vvvvvvvvvvvvvvvv show download progress text
+
             try {
                 BusStop busStop = closestStop.get(i);
 
@@ -506,62 +520,61 @@ public class MainActivity extends AppCompatActivity {
 
                 //System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
                 downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", STOP_ETA_JSON_FILE_TMP_NAME + stopID);
-                switch (i) {
-                    case 0:
-                        checkDownloadStatusFunction(etaProgressText1, etaProgressBar1, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                        break;
-                    case 1:
-                        checkDownloadStatusFunction(etaProgressText2, etaProgressBar2, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                        break;
-                    case 2:
-                        checkDownloadStatusFunction(etaProgressText3, etaProgressBar3, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                        break;
-                    case 3:
-                        checkDownloadStatusFunction(etaProgressText4, etaProgressBar4, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                        break;
-                    case 4:
-                        checkDownloadStatusFunction(etaProgressText5, etaProgressBar5, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
-                        break;
-                }
 
-            } catch(IndexOutOfBoundsException e){
-                etaProgressText1.setText("Closest stop data not found");
+                checkDownloadStatusFunction(dummyTxt, dummyProgressBar, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
+
+
+            } catch (IndexOutOfBoundsException e) {
+                //etaProgressText1.setText("Closest stop data not found");
+                System.out.println("Closest stop data not found");
+            } catch (Throwable e) {
+                //etaProgressText1.setText(e.toString());
+                System.out.println(e.toString());
             }
-            catch (Throwable e) {
-                etaProgressText1.setText(e.toString());
-            }
+
+            //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^show download progress text
+
+
         }
+
     }
 
 
     public void startReadEtaJSONButtonHandler(View view) throws Exception {
 
-        ArrayList<ArrayList<StopEta>> fiveEtaArray = new ArrayList<ArrayList<StopEta>>();
+        ArrayList<ArrayList<StopEta>> outputEtaArray = new ArrayList<ArrayList<StopEta>>();
 
-        for (int i = 0; i < 5; i++) {
-            ArrayList<Object> listData = new ArrayList<Object>();
-            ArrayList<StopEta> oneEtaArray = new ArrayList<StopEta>();
+        //try {
+            for (int i = 0; i < closestStop.size(); i++) {
+                ArrayList<Object> listData = new ArrayList<Object>();
+                ArrayList<StopEta> oneEtaArray = new ArrayList<StopEta>();
 
-            try {
 
                 BusStop busStop = closestStop.get(i);
                 String stopID = busStop.getStopID();
                 convertJsonToArrayList(listData, STOP_ETA_JSON_FILE_NAME + stopID, stopEtaJSONTextView);
                 createEtaArray(oneEtaArray, listData);
-                fiveEtaArray.add(oneEtaArray);
-            } catch(IndexOutOfBoundsException e){
-                eta1TextView.setText("Closest stop data not found");
-            }catch (Throwable e) {
-                eta1TextView.setText((e.toString()));
+                outputEtaArray.add(oneEtaArray);
+
+
             }
-
-
-        }
-        try {
-            outputEtaData(fiveEtaArray);
+        /*} catch (IndexOutOfBoundsException e) {
+            //eta1TextView.setText("Closest stop data not found");
+            System.out.println("Closest stop data not found");
         } catch (Throwable e) {
-            eta1TextView.setText((e.toString()));
-        }
+            //eta1TextView.setText((e.toString()));
+            System.out.println("output one eta");
+            System.out.println(e.toString());
+        }*/
+
+       // try {
+            outputEtaData(outputEtaArray);
+        /*} catch (Throwable e) {
+            //eta1TextView.setText((e.toString()));
+
+            System.out.println("output eta");
+            System.out.println(e.toString());
+        }*/
 
     }
 
@@ -937,6 +950,7 @@ public class MainActivity extends AppCompatActivity {
         //Make sure you close all streams.
         fileStream.close();
 
+        System.out.print(JSONString);
 
         JSONObject result = new JSONObject(JSONString);
 
@@ -1038,75 +1052,87 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void outputEtaData(ArrayList<ArrayList<StopEta>> fiveEtaArray) {
+    private void outputEtaData(ArrayList<ArrayList<StopEta>> outputEtaArray) {
 
-        String eta1 = "";
-        String eta2 = "";
-        String eta3 = "";
-        String eta4 = "";
-        String eta5 = "";
+
+
+
+
+
+        String etaString = "";
         String tmpString = "";
 
-        for (int j = 0; j < 5; j++) {
+        ArrayList<TextView> etaDataTextArray = new ArrayList<TextView>();
+        for (int i = 0; i < closestStop.size(); i++) {
 
-            BusStop busStop = closestStop.get(j);
+
+            //vvvvvvvvvvvvvvvv add text field
+            TextView dummyTxt = new TextView(MainActivity.this);
+            dummyTxt.setId(i+1);
+
+
+            RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            param.addRule(RelativeLayout.BELOW, i);
+            etaDataLayout.addView(dummyTxt, param);
+
+            etaDataTextArray.add(dummyTxt);
+
+            //^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+
+            //vvvvvvvvvvvvvvvv assign text field value
+
+            BusStop busStop = closestStop.get(i);
             tmpString = "";
 
-            for (int i = 0; i < fiveEtaArray.get(j).size(); i++) {
-                StopEta stopEta = fiveEtaArray.get(j).get(i);
+            for (int j = 0; j < outputEtaArray.get(i).size(); j++) {
+                StopEta stopEta = outputEtaArray.get(i).get(j);
                 tmpString += stopEta.toString();
                 tmpString += "\n";
             }
 
-            switch (j) {
-                case 0:
-                    eta1 += busStop.getNameTc();
-                    eta1 += "\n";
-                    eta1 += tmpString;
-                    break;
-                case 1:
-                    eta2 = busStop.getNameTc();
-                    eta2 += "\n";
-                    eta2 += tmpString;
-                    break;
-                case 2:
-                    eta3 = busStop.getNameTc();
-                    eta3 += "\n";
-                    eta3 += tmpString;
-                    break;
-                case 3:
-                    eta4 = busStop.getNameTc();
-                    eta4 += "\n";
-                    eta4 += tmpString;
-                    break;
-                case 4:
-                    eta5 = busStop.getNameTc();
-                    eta5 += "\n";
-                    eta5 += tmpString;
-                    break;
-            }
+            etaString += busStop.getNameTc();
+            etaString += "\n";
+            etaString += tmpString;
+
+            System.out.println(etaString);
+
+
+            dummyTxt.setText(etaString);
+            //^^^^^^^^^^^^^^^^^^^^^^^
         }
-        eta1TextView.setText(eta1);
-        eta2TextView.setText(eta2);
-        eta3TextView.setText(eta3);
-        eta4TextView.setText(eta4);
-        eta5TextView.setText(eta5);
+
+
 
     }
 
     private void outputDistanceData(ArrayList<BusStop> distanceArray, ArrayList<BusStop> closestStop) {
 
-        busStop1TextView.setText(distanceArray.get(0).toString());
-        busStop2TextView.setText(distanceArray.get(1).toString());
-        busStop3TextView.setText(distanceArray.get(2).toString());
-        busStop4TextView.setText(distanceArray.get(3).toString());
-        busStop5TextView.setText(distanceArray.get(4).toString());
+        busStopLayout.removeAllViews();
 
-        closestStop.add(distanceArray.get(0));
-        closestStop.add(distanceArray.get(1));
-        closestStop.add(distanceArray.get(2));
-        closestStop.add(distanceArray.get(3));
-        closestStop.add(distanceArray.get(4));
+        for (int i = 0; i < closestStopCount; i++) {
+
+            //vvvvvvv add to array
+            closestStop.add(distanceArray.get(i));
+            //^^^^^^^^^^^^^^^^
+
+
+            //vvvvvvvvvvvvvvv show to text view
+            TextView dummyTxt = new TextView(MainActivity.this);
+            dummyTxt.setId(i + 1);
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.FILL_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            params.addRule(RelativeLayout.BELOW, i);
+
+            String addText = closestStop.get(i).toString();
+            dummyTxt.setText(addText);
+
+            busStopLayout.addView(dummyTxt, params);
+            //^^^^^^^^^^^^^^^^^^^^
+        }
+
 
     }
 

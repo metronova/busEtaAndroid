@@ -186,6 +186,6 @@ public class StopEta {
                 //"\n" +
                 "eta='" + etaLeft + "'";*/
 
-        return co + " " + route + " " + dir + " " + serviceType + " "+ destTc + " " + etaTime + " " + etaLeft + "min(s)";
+        return route + " " + dir + " " + serviceType + " "+ destTc + " " + etaTime + " " + etaLeft + "min(s)";
     }
 }

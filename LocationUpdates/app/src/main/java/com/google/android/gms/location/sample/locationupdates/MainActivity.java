@@ -1109,7 +1109,7 @@ public class MainActivity extends AppCompatActivity {
                 tmpString += "\n";
             }
 
-            etaString += busStop.getNameTc();
+            etaString = busStop.getNameTc();
             etaString += "\n";
             etaString += tmpString;
 

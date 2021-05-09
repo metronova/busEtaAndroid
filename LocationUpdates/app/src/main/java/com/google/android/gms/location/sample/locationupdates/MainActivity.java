@@ -1057,7 +1057,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+        etaDataLayout.removeAllViews();
 
         String etaString = "";
         String tmpString = "";

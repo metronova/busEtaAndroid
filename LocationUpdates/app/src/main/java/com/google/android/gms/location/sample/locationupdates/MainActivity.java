@@ -544,7 +544,7 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<ArrayList<StopEta>> outputEtaArray = new ArrayList<ArrayList<StopEta>>();
 
-        //try {
+        try {
             for (int i = 0; i < closestStop.size(); i++) {
                 ArrayList<Object> listData = new ArrayList<Object>();
                 ArrayList<StopEta> oneEtaArray = new ArrayList<StopEta>();
@@ -558,23 +558,23 @@ public class MainActivity extends AppCompatActivity {
 
 
             }
-        /*} catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             //eta1TextView.setText("Closest stop data not found");
             System.out.println("Closest stop data not found");
         } catch (Throwable e) {
             //eta1TextView.setText((e.toString()));
             System.out.println("output one eta");
             System.out.println(e.toString());
-        }*/
+        }
 
-       // try {
+        try {
             outputEtaData(outputEtaArray);
-        /*} catch (Throwable e) {
+        } catch (Throwable e) {
             //eta1TextView.setText((e.toString()));
 
             System.out.println("output eta");
             System.out.println(e.toString());
-        }*/
+        }
 
     }
 

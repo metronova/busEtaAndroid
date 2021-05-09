@@ -561,6 +561,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (IndexOutOfBoundsException e) {
             //eta1TextView.setText("Closest stop data not found");
             System.out.println("Closest stop data not found");
+        } catch (JSONException e) {
+            System.out.println("JSON exception");
         } catch (Throwable e) {
             //eta1TextView.setText((e.toString()));
             System.out.println("output one eta");

@@ -22,6 +22,16 @@ public class DateUtil {
         return outputString;
     }
 
+    public static String returnTimeString(String string) {
+
+        Date date = stringToDate(string);
+
+        String outputString = "";
+        outputString = date.getHours() + ":" + date.getMinutes();
+
+        return outputString;
+    }
+
     public static Date stringToDate(String string) {
         Date date = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");

@@ -27,6 +27,7 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
@@ -36,6 +37,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -188,17 +190,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView mLongitudeTextView;
     private TextView progressText;
     private TextView busStopJSONTextView;
-    private TextView busStop1TextView;
-    private TextView busStop2TextView;
-    private TextView busStop3TextView;
-    private TextView busStop4TextView;
-    private TextView busStop5TextView;
     private TextView stopEtaJSONTextView;
-    private TextView eta1TextView;
-    private TextView eta2TextView;
-    private TextView eta3TextView;
-    private TextView eta4TextView;
-    private TextView eta5TextView;
     private TextView deleteTextView;
 
     // Labels.
@@ -482,9 +474,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void startDownloadEtaJSONButtonHandler(View view) throws Exception {
 
-        //vvvvvvvvvvvvvvvv show download progress text field
+
         ArrayList<TextView> progressTextArray = new ArrayList<TextView>();
         ArrayList<ProgressBar> progressBarArray = new ArrayList<ProgressBar>();
 
@@ -492,6 +485,9 @@ public class MainActivity extends AppCompatActivity {
 
         int j = 0;
         for (int i = 0; i < closestStop.size(); i++) {
+
+            //vvvvvvvvvvvvvvvv show download progress text field
+
             ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
             j += 1;
             dummyProgressBar.setId(j);
@@ -501,11 +497,11 @@ public class MainActivity extends AppCompatActivity {
             dummyTxt.setId(j);
 
             RelativeLayout.LayoutParams paramBar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-            paramBar.addRule(RelativeLayout.BELOW, j-2);
+            paramBar.addRule(RelativeLayout.BELOW, j - 2);
             etaProgressLayout.addView(dummyProgressBar, paramBar);
 
             RelativeLayout.LayoutParams paramText = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-            paramText.addRule(RelativeLayout.BELOW, j-1);
+            paramText.addRule(RelativeLayout.BELOW, j - 1);
             etaProgressLayout.addView(dummyTxt, paramText);
 
             //^^^^^^^^^^^^^^^^^^^^^show download progress text field
@@ -518,7 +514,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String stopID = busStop.getStopID();
 
-                //System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
+                System.out.println(BUS_STOP_ETA_JSON_URL + stopID);
                 downloadJSON(BUS_STOP_ETA_JSON_URL + stopID, stopID + " Stop ETA", stopID + " Stop ETA", STOP_ETA_JSON_FILE_TMP_NAME + stopID);
 
                 checkDownloadStatusFunction(dummyTxt, dummyProgressBar, STOP_ETA_JSON_FILE_TMP_NAME + stopID, STOP_ETA_JSON_FILE_NAME + stopID);
@@ -553,7 +549,7 @@ public class MainActivity extends AppCompatActivity {
                 BusStop busStop = closestStop.get(i);
                 String stopID = busStop.getStopID();
                 convertJsonToArrayList(listData, STOP_ETA_JSON_FILE_NAME + stopID, stopEtaJSONTextView);
-                createEtaArray(oneEtaArray, listData);
+                createEtaArray(oneEtaArray, listData, true);
                 outputEtaArray.add(oneEtaArray);
 
 
@@ -952,7 +948,7 @@ public class MainActivity extends AppCompatActivity {
         //Make sure you close all streams.
         fileStream.close();
 
-        System.out.print(JSONString);
+        //System.out.print(JSONString);
 
         JSONObject result = new JSONObject(JSONString);
 
@@ -1025,7 +1021,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void createEtaArray(ArrayList<StopEta> etaArray, ArrayList<Object> listData) throws JSONException {
+    private void createEtaArray(ArrayList<StopEta> etaArray, ArrayList<Object> listData, boolean firstOnly) throws JSONException {
 
         for (int i = 0; i < listData.size(); i++) {
             Object array = listData.get(i);
@@ -1048,15 +1044,35 @@ public class MainActivity extends AppCompatActivity {
             stopEta.setRmkEn(result2.get("rmk_en").toString());
             stopEta.setDataTimestamp(result2.get("data_timestamp").toString());
 
+
             etaArray.add(stopEta);
 
+
+        }
+
+
+        //orginally there are 3 eta data for one bus route.
+        // if firstOnly = true, show the first eta data only.
+        if (firstOnly == true) {
+
+            // the first one is always unique, so is int i = 1, but not i = 0
+            for (int i = 1; i < etaArray.size(); i++) {
+
+                String etaSeq = etaArray.get(i).getEtaSeq();
+
+                if (Integer.valueOf(etaSeq) != 1) {
+
+                    etaArray.remove(i);
+
+                    i -=1 ;
+
+                }
+            }
         }
 
     }
 
     private void outputEtaData(ArrayList<ArrayList<StopEta>> outputEtaArray) {
-
-
 
 
         etaDataLayout.removeAllViews();
@@ -1070,7 +1086,7 @@ public class MainActivity extends AppCompatActivity {
 
             //vvvvvvvvvvvvvvvv add text field
             TextView dummyTxt = new TextView(MainActivity.this);
-            dummyTxt.setId(i+1);
+            dummyTxt.setId(i + 1);
 
 
             RelativeLayout.LayoutParams param = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
@@ -1080,8 +1096,6 @@ public class MainActivity extends AppCompatActivity {
             etaDataTextArray.add(dummyTxt);
 
             //^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
 
 
             //vvvvvvvvvvvvvvvv assign text field value
@@ -1099,13 +1113,12 @@ public class MainActivity extends AppCompatActivity {
             etaString += "\n";
             etaString += tmpString;
 
-            System.out.println(etaString);
+            //System.out.println(etaString);
 
 
             dummyTxt.setText(etaString);
             //^^^^^^^^^^^^^^^^^^^^^^^
         }
-
 
 
     }

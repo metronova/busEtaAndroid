@@ -178,7 +178,7 @@ public class StopEta {
             e.printStackTrace();
         }
 
-        String etaTime = DateUtil.returnDatetimeString(this.eta);
+        String etaTime = DateUtil.returnTimeString(this.eta);
 
         /*return "route='" + route + "', " +
                 //"\n" +
@@ -186,6 +186,6 @@ public class StopEta {
                 //"\n" +
                 "eta='" + etaLeft + "'";*/
 
-        return route + " " + destTc + " " + etaTime + " " + etaLeft + "min(s)";
+        return co + " " + route + " " + dir + " " + serviceType + " "+ destTc + " " + etaTime + " " + etaLeft + "min(s)";
     }
 }

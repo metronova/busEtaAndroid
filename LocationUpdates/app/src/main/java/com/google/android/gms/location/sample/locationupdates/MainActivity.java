@@ -488,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
 
             //vvvvvvvvvvvvvvvv show download progress text field
 
-            ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this);
+            ProgressBar dummyProgressBar = new ProgressBar(MainActivity.this, null, android.R.attr.progressBarStyleHorizontal);
             j += 1;
             dummyProgressBar.setId(j);
 
@@ -496,11 +496,11 @@ public class MainActivity extends AppCompatActivity {
             j += 1;
             dummyTxt.setId(j);
 
-            RelativeLayout.LayoutParams paramBar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            RelativeLayout.LayoutParams paramBar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             paramBar.addRule(RelativeLayout.BELOW, j - 2);
             etaProgressLayout.addView(dummyProgressBar, paramBar);
 
-            RelativeLayout.LayoutParams paramText = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            RelativeLayout.LayoutParams paramText = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             paramText.addRule(RelativeLayout.BELOW, j - 1);
             etaProgressLayout.addView(dummyTxt, paramText);
 

@@ -149,6 +149,8 @@ public class MainActivity extends AppCompatActivity {
     private final static String STOP_ETA_JSON_FOLDER_NAME = "eta";
     private final static String JSON_SUFFIX = ".json";
 
+    private final static boolean mergeBusStop = true;
+
     private final static int closestStopCount = 20;
 
     /**
@@ -564,6 +566,37 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("output one eta");
             System.out.println(e.toString());
         }
+
+        //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        // there are different stopID but same stopName. Merge same stopName to one
+       if(mergeBusStop == true){
+
+            int totalLength = closestStop.size();
+            for(int i = 0; i < totalLength; i++){
+                BusStop busStop = closestStop.get(i);
+                String previousStopName = busStop.getNameTc();
+                System.out.println("previousStopName" + previousStopName);
+
+                //k = 1 but not k = 0. the first one is always unique, no need to check.
+                for (int k = 1; k < totalLength; k++){
+                    String currentStopName = closestStop.get(k).getNameTc();
+                    System.out.println("currentStopName" + currentStopName);
+                    if(currentStopName.equals(previousStopName)){
+                        System.out.println("same, delete");
+
+                        outputEtaArray.get(i).addAll(outputEtaArray.get(k));
+
+                        closestStop.remove(k);
+                        outputEtaArray.remove(k);
+                        totalLength -= 1 ;
+                        k -= 1;
+                    }
+                }
+            }
+
+        }
+
+       //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
         try {
             outputEtaData(outputEtaArray);

@@ -569,26 +569,27 @@ public class MainActivity extends AppCompatActivity {
 
         //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         // there are different stopID but same stopName. Merge same stopName to one
-       if(mergeBusStop == true){
+        if (mergeBusStop == true) {
+
 
             int totalLength = closestStop.size();
-            for(int i = 0; i < totalLength; i++){
+            for (int i = 0; i < totalLength; i++) {
                 BusStop busStop = closestStop.get(i);
                 String previousStopName = busStop.getNameTc();
                 System.out.println("previousStopName" + previousStopName);
 
                 //k = 1 but not k = 0. the first one is always unique, no need to check.
-                for (int k = 1; k < totalLength; k++){
+                for (int k = i+1; k < totalLength; k++) {
                     String currentStopName = closestStop.get(k).getNameTc();
                     System.out.println("currentStopName" + currentStopName);
-                    if(currentStopName.equals(previousStopName)){
+                    if (currentStopName.equals(previousStopName)) {
                         System.out.println("same, delete");
 
                         outputEtaArray.get(i).addAll(outputEtaArray.get(k));
 
                         closestStop.remove(k);
                         outputEtaArray.remove(k);
-                        totalLength -= 1 ;
+                        totalLength -= 1;
                         k -= 1;
                     }
                 }
@@ -596,7 +597,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-       //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
         try {
             outputEtaData(outputEtaArray);
@@ -1097,7 +1098,7 @@ public class MainActivity extends AppCompatActivity {
 
                     etaArray.remove(i);
 
-                    i -=1 ;
+                    i -= 1;
 
                 }
             }

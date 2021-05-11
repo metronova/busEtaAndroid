@@ -217,6 +217,7 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar progressBar;
     //Timer progressTimer;
     ArrayList<BusStop> closestStop = new ArrayList<BusStop>();
+    ArrayList<BusStop> closestStopMerge = new ArrayList<BusStop>();
 
 
     LinearLayout linearLayout;
@@ -569,6 +570,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         try {
+
+            closestStopMerge = (ArrayList)closestStop.clone();
 
             // there are different stopID but same stopName. Merge same stopName to one
             if (mergeBusStop == true) {
@@ -1091,7 +1094,7 @@ public class MainActivity extends AppCompatActivity {
         String tmpString = "";
 
         ArrayList<TextView> etaDataTextArray = new ArrayList<TextView>();
-        for (int i = 0; i < closestStop.size(); i++) {
+        for (int i = 0; i < closestStopMerge.size(); i++) {
 
 
             //vvvvvvvvvvvvvvvv add text field
@@ -1110,7 +1113,7 @@ public class MainActivity extends AppCompatActivity {
 
             //vvvvvvvvvvvvvvvv assign text field value
 
-            BusStop busStop = closestStop.get(i);
+            BusStop busStop = closestStopMerge.get(i);
             tmpString = "";
 
             for (int j = 0; j < outputEtaArray.get(i).size(); j++) {
@@ -1178,22 +1181,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void mergeBusStopArray(ArrayList<ArrayList<StopEta>> outputEtaArray) {
 
-        int totalLength = closestStop.size();
+
+
+        int totalLength = closestStopMerge.size();
         for (int i = 0; i < totalLength; i++) {
-            BusStop busStop = closestStop.get(i);
+            BusStop busStop = closestStopMerge.get(i);
             String previousStopName = busStop.getNameTc();
             System.out.println("previousStopName" + previousStopName);
 
             //k = 1 but not k = 0. the first one is always unique, no need to check.
             for (int k = i + 1; k < totalLength; k++) {
-                String currentStopName = closestStop.get(k).getNameTc();
+                String currentStopName = closestStopMerge.get(k).getNameTc();
                 System.out.println("currentStopName" + currentStopName);
                 if (currentStopName.equals(previousStopName)) {
                     System.out.println("same, delete");
 
                     outputEtaArray.get(i).addAll(outputEtaArray.get(k));
 
-                    closestStop.remove(k);
+                    closestStopMerge.remove(k);
                     outputEtaArray.remove(k);
                     totalLength -= 1;
                     k -= 1;

@@ -567,40 +567,16 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(e.toString());
         }
 
-        //vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        // there are different stopID but same stopName. Merge same stopName to one
-        if (mergeBusStop == true) {
-
-
-            int totalLength = closestStop.size();
-            for (int i = 0; i < totalLength; i++) {
-                BusStop busStop = closestStop.get(i);
-                String previousStopName = busStop.getNameTc();
-                System.out.println("previousStopName" + previousStopName);
-
-                //k = 1 but not k = 0. the first one is always unique, no need to check.
-                for (int k = i+1; k < totalLength; k++) {
-                    String currentStopName = closestStop.get(k).getNameTc();
-                    System.out.println("currentStopName" + currentStopName);
-                    if (currentStopName.equals(previousStopName)) {
-                        System.out.println("same, delete");
-
-                        outputEtaArray.get(i).addAll(outputEtaArray.get(k));
-
-                        closestStop.remove(k);
-                        outputEtaArray.remove(k);
-                        totalLength -= 1;
-                        k -= 1;
-                    }
-                }
-            }
-
-        }
-
-        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
         try {
+
+            // there are different stopID but same stopName. Merge same stopName to one
+            if (mergeBusStop == true) {
+                mergeBusStopArray(outputEtaArray);
+            }
+
             outputEtaData(outputEtaArray);
+
         } catch (Throwable e) {
             //eta1TextView.setText((e.toString()));
 
@@ -1198,6 +1174,32 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void mergeBusStopArray(ArrayList<ArrayList<StopEta>> outputEtaArray) {
+
+        int totalLength = closestStop.size();
+        for (int i = 0; i < totalLength; i++) {
+            BusStop busStop = closestStop.get(i);
+            String previousStopName = busStop.getNameTc();
+            System.out.println("previousStopName" + previousStopName);
+
+            //k = 1 but not k = 0. the first one is always unique, no need to check.
+            for (int k = i + 1; k < totalLength; k++) {
+                String currentStopName = closestStop.get(k).getNameTc();
+                System.out.println("currentStopName" + currentStopName);
+                if (currentStopName.equals(previousStopName)) {
+                    System.out.println("same, delete");
+
+                    outputEtaArray.get(i).addAll(outputEtaArray.get(k));
+
+                    closestStop.remove(k);
+                    outputEtaArray.remove(k);
+                    totalLength -= 1;
+                    k -= 1;
+                }
+            }
+        }
     }
 
     /**

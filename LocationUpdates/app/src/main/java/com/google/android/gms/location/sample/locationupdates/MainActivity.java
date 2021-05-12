@@ -50,6 +50,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -150,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
     private final static String JSON_SUFFIX = ".json";
 
     private final static boolean mergeBusStop = true;
+    private static boolean autoUpdateLocation = true;
 
     private final static int closestStopCount = 20;
 
@@ -194,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView busStopJSONTextView;
     private TextView stopEtaJSONTextView;
     private TextView deleteTextView;
-
+    private Switch autoUpdateLocationSwitch;
     // Labels.
     private String mLatitudeLabel;
     private String mLongitudeLabel;
@@ -252,6 +254,8 @@ public class MainActivity extends AppCompatActivity {
         etaDataLayout = (RelativeLayout) findViewById(R.id.eta_data_layout);
         busStopLayout = (RelativeLayout) findViewById(R.id.bus_stop_layout);
 
+        autoUpdateLocationSwitch = (Switch) findViewById(R.id.auto_update_location_switch);
+
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
         mLongitudeLabel = getResources().getString(R.string.longitude_label);
@@ -271,6 +275,10 @@ public class MainActivity extends AppCompatActivity {
         createLocationCallback();
         createLocationRequest();
         buildLocationSettingsRequest();
+
+
+        autoUpdateLocationButtonClicker();
+
     }
 
 
@@ -291,6 +299,12 @@ public class MainActivity extends AppCompatActivity {
             startLocationUpdates();
         } else if (!checkPermissions()) {
             requestPermissions();
+        }
+
+        if (autoUpdateLocation) {
+            mStartUpdatesButton.performClick();
+        } else {
+            mStopUpdatesButton.performClick();
         }
 
         updateUI();
@@ -381,6 +395,17 @@ public class MainActivity extends AppCompatActivity {
     //////////////////////////////////////////////////////////
     //Button Handler
     //////////////////////////////////////////////////////////
+
+
+    public void autoUpdateLocationSwitchHandler(View view) {
+        if (autoUpdateLocationSwitch.isChecked()) {
+            autoUpdateLocation = true;
+        } else {
+            autoUpdateLocation = false;
+        }
+
+        autoUpdateLocationButtonClicker();
+    }
 
     /**
      * Handles the Start Updates button and requests start of location updates. Does nothing if
@@ -571,7 +596,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
 
-            closestStopMerge = (ArrayList)closestStop.clone();
+            closestStopMerge = (ArrayList) closestStop.clone();
 
             // there are different stopID but same stopName. Merge same stopName to one
             if (mergeBusStop == true) {
@@ -1182,7 +1207,6 @@ public class MainActivity extends AppCompatActivity {
     private void mergeBusStopArray(ArrayList<ArrayList<StopEta>> outputEtaArray) {
 
 
-
         int totalLength = closestStopMerge.size();
         for (int i = 0; i < totalLength; i++) {
             BusStop busStop = closestStopMerge.get(i);
@@ -1243,6 +1267,17 @@ public class MainActivity extends AppCompatActivity {
     private void updateUI() {
         setButtonsEnabledState();
         updateLocationUI();
+    }
+
+    private void autoUpdateLocationButtonClicker() {
+
+        if (autoUpdateLocation) {
+            mStartUpdatesButton.performClick();
+            autoUpdateLocationSwitch.setChecked(true);
+        } else {
+            mStopUpdatesButton.performClick();
+            autoUpdateLocationSwitch.setChecked(false);
+        }
     }
 
 

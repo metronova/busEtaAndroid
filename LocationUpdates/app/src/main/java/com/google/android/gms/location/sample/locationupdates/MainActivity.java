@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
     private final static boolean mergeBusStop = true;
     private static boolean autoUpdateLocation = true;
     private static boolean autoDownloadEta = true;
+    private static boolean autoShowEta = true;
 
     private final static int closestStopCount = 20;
 
@@ -202,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Switch autoUpdateLocationSwitch;
     private Switch autoDownloadEtaSwitch;
+    private Switch autoShowEtaSwitch;
 
     // Labels.
     private String mLatitudeLabel;
@@ -264,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
 
         autoUpdateLocationSwitch = (Switch) findViewById(R.id.auto_update_location_switch);
         autoDownloadEtaSwitch = (Switch) findViewById(R.id.auto_download_eta_switch);
+        autoShowEtaSwitch = (Switch) findViewById(R.id.auto_show_eta_switch);
 
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
@@ -587,6 +590,15 @@ public class MainActivity extends AppCompatActivity {
             //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^show download progress text
 
 
+        }
+
+    }
+
+    public void autoShowEtaSwitchHandler(View view) {
+        if (autoShowEtaSwitch.isChecked()) {
+            autoShowEta = true;
+        } else {
+            autoShowEta = false;
         }
 
     }

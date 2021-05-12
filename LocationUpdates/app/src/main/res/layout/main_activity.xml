@@ -262,6 +262,14 @@
 
             </RelativeLayout>
 
+            <Switch
+                android:id="@+id/auto_show_eta_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auto_show_eta"
+                android:checked="true"
+                android:onClick="autoShowEtaSwitchHandler"/>
+
 
             <LinearLayout
                 android:layout_width="match_parent"

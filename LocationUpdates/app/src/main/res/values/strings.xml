@@ -30,6 +30,7 @@
     <string name="delete_bus_stop_json">Delete Bus Stop JSON</string>
     <string name="delete_stop_eta_json">Delete Stop ETA JSON</string>
     <string name="auto_update_location">Auto Update Location</string>
+    <string name="auto_download_eta">Auto download ETA data when update bus stop data</string>
 
     <string name="location_settings_inadequate_warning">The location settings on the device are not
         adequate to run this sample. Fix in Settings.</string>

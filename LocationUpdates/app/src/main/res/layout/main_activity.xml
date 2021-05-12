@@ -187,6 +187,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/progressBar" />
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -223,6 +224,14 @@
 
 
             </RelativeLayout>
+
+            <Switch
+                android:id="@+id/auto_download_eta_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/auto_download_eta"
+                android:checked="true"
+                android:onClick="autoDownloadEtaSwitchHandler"/>
 
             <LinearLayout
                 android:layout_width="match_parent"

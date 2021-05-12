@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final static boolean mergeBusStop = true;
     private static boolean autoUpdateLocation = true;
+    private static boolean autoDownloadEta = true;
 
     private final static int closestStopCount = 20;
 
@@ -189,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
     // UI Widgets.
     private Button mStartUpdatesButton;
     private Button mStopUpdatesButton;
+    private Button downloadEtaButton;
+
     private TextView mLastUpdateTimeTextView;
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
@@ -196,7 +199,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView busStopJSONTextView;
     private TextView stopEtaJSONTextView;
     private TextView deleteTextView;
+
     private Switch autoUpdateLocationSwitch;
+    private Switch autoDownloadEtaSwitch;
+
     // Labels.
     private String mLatitudeLabel;
     private String mLongitudeLabel;
@@ -238,6 +244,8 @@ public class MainActivity extends AppCompatActivity {
         // Locate the UI widgets.
         mStartUpdatesButton = (Button) findViewById(R.id.start_updates_button);
         mStopUpdatesButton = (Button) findViewById(R.id.stop_updates_button);
+        downloadEtaButton = (Button) findViewById(R.id.download_eta_button);
+
         mLatitudeTextView = (TextView) findViewById(R.id.latitude_text);
         mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
         mLastUpdateTimeTextView = (TextView) findViewById(R.id.last_update_time_text);
@@ -255,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
         busStopLayout = (RelativeLayout) findViewById(R.id.bus_stop_layout);
 
         autoUpdateLocationSwitch = (Switch) findViewById(R.id.auto_update_location_switch);
+        autoDownloadEtaSwitch = (Switch) findViewById(R.id.auto_download_eta_switch);
 
         // Set labels.
         mLatitudeLabel = getResources().getString(R.string.latitude_label);
@@ -277,7 +286,8 @@ public class MainActivity extends AppCompatActivity {
         buildLocationSettingsRequest();
 
 
-        autoUpdateLocationButtonClicker();
+        autoUpdateLocationSwitchInit();
+        autoDownloadEtaSwitchInit();
 
     }
 
@@ -407,6 +417,7 @@ public class MainActivity extends AppCompatActivity {
         autoUpdateLocationButtonClicker();
     }
 
+
     /**
      * Handles the Start Updates button and requests start of location updates. Does nothing if
      * updates have already been requested.
@@ -498,6 +509,23 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(e.toString());
         }
 
+        if(autoDownloadEta){
+            downloadEtaButton.performClick();
+        }
+
+
+    }
+
+
+
+
+
+    public void autoDownloadEtaSwitchHandler(View view) {
+        if (autoDownloadEtaSwitch.isChecked()) {
+            autoDownloadEta = true;
+        } else {
+            autoDownloadEta = false;
+        }
 
     }
 
@@ -1273,10 +1301,26 @@ public class MainActivity extends AppCompatActivity {
 
         if (autoUpdateLocation) {
             mStartUpdatesButton.performClick();
-            autoUpdateLocationSwitch.setChecked(true);
         } else {
             mStopUpdatesButton.performClick();
+        }
+    }
+
+    private void autoUpdateLocationSwitchInit() {
+
+        if (autoUpdateLocation) {
+            autoUpdateLocationSwitch.setChecked(true);
+        } else {
             autoUpdateLocationSwitch.setChecked(false);
+        }
+    }
+
+    private void autoDownloadEtaSwitchInit() {
+
+        if (autoDownloadEta) {
+            autoDownloadEtaSwitch.setChecked(true);
+        } else {
+            autoDownloadEtaSwitch.setChecked(false);
         }
     }
 
